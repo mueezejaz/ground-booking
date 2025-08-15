@@ -11,7 +11,6 @@ export const POST= handleRouteError(auth(async (req) => {
 
     const body = await req.json();
     const email = body?.email;
-
     if (!req.auth.user || req.auth.user.email !== email) {
         throw new ApiError(401, "Unauthorized user");
     }
@@ -30,12 +29,13 @@ export const POST= handleRouteError(auth(async (req) => {
         const diffMinutes = Math.floor(diffMs / 60000);
         const minutesLeft = Math.max(20 - diffMinutes, 0);
 
-    if (minutesLeft <= 0) {
+    if (minutesLeft <= 20) {
         await Booking.deleteOne({ _id: booking._id });
         return NextResponse.json({
             success:true,
+            isFound:true,
             expired: true,
-            message: "Booking has been deleted because it was older than 20 minutes."
+            message: "Booking has been deleted because it was older than 20 minutes pls creat new booking."
         }, { status: 410 }); // 410 Gone
     }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ export default function PaymentVerificationPage() {
   const [timeLeft, setTimeLeft] = useState(20)
   const [image, setImage] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
-
+  const inputRef = useRef(null);  
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -78,7 +78,7 @@ export default function PaymentVerificationPage() {
             <Label htmlFor="upload" className="text-primary font-medium">
               Upload Payment Screenshot
             </Label>
-            <Input type="file" accept="image/*" onChange={handleImageUpload} />
+            <Input ref={inputRef} type="file" accept="image/*" onChange={handleImageUpload} />
             {image && (
               <div className="mt-2 space-y-2">
                 <p className="text-sm text-secondary">Selected: {image.name}</p>
@@ -93,7 +93,16 @@ export default function PaymentVerificationPage() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={()=>{
+                inputRef.current.click();
+              }}
+              className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
+            >
+                click here to upload image
+            </Button>
+
             <Button
               onClick={handleSubmit}
               className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"

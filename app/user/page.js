@@ -9,8 +9,8 @@ import { Calendar, Clock, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSession, signOut, signIn } from "next-auth/react"
 import Loading from "../components/loading"
+import { useRouter } from 'next/navigation'
 import AlertModel from "../components/alertModel"
-
 export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedStartTime, setSelectedStartTime] = useState("")
@@ -23,7 +23,8 @@ export default function BookingPage() {
   const [alertOpen, setAlertOpen] = useState(false)
   const [alertContent, setAlertContent] = useState({ title: "", description: "" })
   const hasChecked = useRef(false);
-  let currentAlertFunction = useRef(()=>{});
+  const router = useRouter();
+  let currentAlertFunction = useRef(() => { });
   //auth
   const { data: session, status } = useSession()
 
@@ -46,13 +47,13 @@ export default function BookingPage() {
             if (!data.isFound) return
             if (data.expired) {
               setAlertContent({ title: "booking expired", description: data.message })
-              alertOpen(true);
-              currentAlertFunction = () => {
+              setAlertOpen(true);
+              currentAlertFunction.current = () => {
                 setAlertOpen(false);
               }
               return
             } else {
-              console.log("to be done send user to verification page")
+              router.push(`/user/verify/${data.booking._id}`)
             }
             return
           }
@@ -149,7 +150,7 @@ export default function BookingPage() {
           setAlertOpen(true)
         }
       } else {
-        alert("Booking successful!")
+        router.push(`/user/verify/${data.data._id}`)
       }
     } catch (err) {
       console.error(err)
