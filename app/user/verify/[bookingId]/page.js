@@ -6,120 +6,198 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation";
+import AlertModel from "@/app/components/alertModel"
 export default function PaymentVerificationPage() {
-  const { bookingId } = useParams()
-  const [timeLeft, setTimeLeft] = useState(20)
-  const [image, setImage] = useState(null)
-  const [previewUrl, setPreviewUrl] = useState(null)
-  const inputRef = useRef(null);  
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          return 0
+    const { bookingId } = useParams()
+    const [timeLeft, setTimeLeft] = useState(20)
+    const [image, setImage] = useState(null)
+    const [previewUrl, setPreviewUrl] = useState(null)
+    const { data: session, status } = useSession()
+    const [price, setprice] = useState(0);
+    const inputRef = useRef(null);
+    const [alertOpen, setAlertOpen] = useState(false)
+    const [alertContent, setAlertContent] = useState({ title: "", description: "" })
+    const isHit = useRef(false);
+    const currentAlertFunction = useRef(() => { });
+    const router = useRouter()
+    console.log(session)
+    if (status === "unauthenticated") {
+        router.push("/user");
+    }
+    useEffect(() => {
+        const verifyBooking = async () => {
+            if (status === "authenticated" && !isHit.current) {
+                console.log("running")
+                try {
+                    const res = await fetch('/api/user/getunverifiedbooking/byid', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include', // if using cookies for auth
+                        body: JSON.stringify({
+                            email: session.user.email, // TODO: replace with actual logged-in user email
+                            id: bookingId,
+                        }),
+                    });
+                    isHit.current = true;
+                    const data = await res.json();
+                    if (data.success) {
+                        if (!data.isFound) {
+                            setAlertContent({ title: "booking not found", description: "booking not found may be your id is wrong or admin cancel your booking pls try again" })
+                            setAlertOpen(true);
+                            currentAlertFunction.current = () => {
+                                router.push("/user");
+                                setAlertOpen(false)
+                            }
+                            return
+                        }
+                        if (data.expired) {
+                            setAlertContent({ title: "booking expired", description: data.message })
+                            setAlertOpen(true);
+                            currentAlertFunction.current = () => {
+                                router.push("/user");
+                                setAlertOpen(false);
+                            }
+                            return
+                        } else {
+                            setTimeLeft(data.minutesLeft);
+                            setprice(data.booking.price)
+                        }
+                        return
+                    }else{
+                            setAlertContent({ title: "some thing wrong", description: data.message })
+                            setAlertOpen(true);
+                            currentAlertFunction.current = () => {
+                                setAlertOpen(false);
+                            }
+                    }
+                } catch (err) {
+                    console.log(data);
+                    alert("some thing went wrong");
+                }
+            };
         }
-        return prev - 1
-      })
-    }, 60000)
-    return () => clearInterval(timer)
-  }, [])
+        if (bookingId) {
+            verifyBooking();
+        }
+    }, [bookingId, status]);
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setImage(file)
-      setPreviewUrl(URL.createObjectURL(file))
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer)
+                    return 0
+                }
+                return prev - 1
+            })
+        }, 60000)
+        return () => clearInterval(timer)
+    }, [])
+
+    const handleImageUpload = (e) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setImage(file)
+            setPreviewUrl(URL.createObjectURL(file))
+        }
     }
-  }
 
-  const handleCancel = () => {
-    if (confirm("Are you sure you want to cancel this booking?")) {
-      alert("Booking cancelled.")
-      // TODO: Cancel booking API call
+    const handleCancel = () => {
+        if (confirm("Are you sure you want to cancel this booking?")) {
+            alert("Booking cancelled.")
+            // TODO: Cancel booking API call
+        }
     }
-  }
 
-  const handleSubmit = () => {
-    if (!image) {
-      alert("Please upload a screenshot of your payment.")
-      return
+    const handleSubmit = () => {
+        if (!image) {
+            alert("Please upload a screenshot of your payment.")
+            return
+        }
+        alert("Payment submitted for verification.")
+        // TODO: Upload image and verify
     }
-    alert("Payment submitted for verification.")
-    // TODO: Upload image and verify
-  }
 
-  return (
-    <div className="min-h-screen w-full bg-primary text-white flex justify-center items-center px-4 py-10">
-      <Card className="w-full max-w-xl bg-white text-primary shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Payment Verification</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">
-              Booking ID: <span className="text-secondary">{bookingId}</span>
-            </h2>
-            <p>
-              Time left to verify:{" "}
-              <span className="text-accent font-bold">{timeLeft} minute(s)</span>
-            </p>
-          </div>
+    return (
+        <div className="min-h-screen w-full bg-primary text-white flex justify-center items-center px-4 py-10">
+            <Card className="w-full max-w-xl bg-white text-primary shadow-lg">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold text-primary">Payment Verification</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <h2 className="text-lg font-semibold">
+                            Booking ID: <span className="text-secondary">{bookingId}</span>
+                        </h2>
+                        <p>
+                            Time left to verify:{" "}
+                            <span className="text-accent font-bold">{timeLeft} minute(s)</span>
+                        </p>
+                    </div>
 
-          <div className="space-y-1">
-            <Label className="text-primary font-medium">Amount to Pay</Label>
-            <p className="bg-secondary text-dark px-4 py-2 rounded-md font-bold">
-              ₹100 per hour (Dummy)
-            </p>
-          </div>
+                    <div className="space-y-1">
+                        <Label className="text-primary font-medium">Amount to Pay</Label>
+                        <p className="bg-secondary text-dark px-4 py-2 rounded-md font-bold">
+                            {price}
+                        </p>
+                    </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="upload" className="text-primary font-medium">
-              Upload Payment Screenshot
-            </Label>
-            <Input ref={inputRef} type="file" accept="image/*" onChange={handleImageUpload} />
-            {image && (
-              <div className="mt-2 space-y-2">
-                <p className="text-sm text-secondary">Selected: {image.name}</p>
-                {previewUrl && (
-                  <img
-                    src={previewUrl}
-                    alt="Payment preview"
-                    className="rounded-md border border-secondary max-h-64 object-contain"
-                  />
-                )}
-              </div>
-            )}
-          </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="upload" className="text-primary font-medium">
+                            Upload Payment Screenshot
+                        </Label>
+                        <Input ref={inputRef} type="file" accept="image/*" onChange={handleImageUpload} />
+                        {image && (
+                            <div className="mt-2 space-y-2">
+                                <p className="text-sm text-secondary">Selected: {image.name}</p>
+                                {previewUrl && (
+                                    <img
+                                        src={previewUrl}
+                                        alt="Payment preview"
+                                        className="rounded-md border border-secondary max-h-64 object-contain"
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-          <div className="flex flex-col gap-4">
-            <Button
-              onClick={()=>{
-                inputRef.current.click();
-              }}
-              className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
-            >
-                click here to upload image
-            </Button>
+                    <div className="flex flex-col gap-4">
+                        <Button
+                            onClick={() => {
+                                inputRef.current.click();
+                            }}
+                            className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
+                        >
+                            click here to upload image
+                        </Button>
 
-            <Button
-              onClick={handleSubmit}
-              className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
-            >
-              Submit for Verification
-            </Button>
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={handleCancel}
-            >
-              Cancel Booking
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+                        <Button
+                            onClick={handleSubmit}
+                            className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
+                        >
+                            Submit for Verification
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={handleCancel}
+                        >
+                            Cancel Booking
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+            <AlertModel
+                isOpen={alertOpen}
+                setisOpen={setAlertOpen}
+                alertContent={alertContent}
+                onclick={currentAlertFunction.current}
+            />
+        </div>
+    )
 }
 

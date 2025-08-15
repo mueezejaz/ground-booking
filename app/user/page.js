@@ -56,6 +56,13 @@ export default function BookingPage() {
               router.push(`/user/verify/${data.booking._id}`)
             }
             return
+          } else {
+
+            setAlertContent({ title: "some thing wrong", description: data.message })
+            setAlertOpen(true);
+            currentAlertFunction.current = () => {
+              setAlertOpen(false);
+            }
           }
         } catch (error) {
           console.log("some this went wrong")
