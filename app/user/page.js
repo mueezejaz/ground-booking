@@ -26,6 +26,27 @@ export default function BookingPage() {
 
   //auth
   const { data: session, status } = useSession()
+
+  useEffect(() => {
+    const createBooking = async () => {
+      if (status === "authenticated") {
+        const response = await fetch("/api/user/getunverifiedbooking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: session.user.email,
+          }),
+        });
+
+        // Optional: handle the response
+        const data = await response.json();
+        console.log(data);
+      }
+    };
+
+    createBooking();
+  }, [session]);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       signIn("google", { callbackUrl: window.location.href })
@@ -45,7 +66,6 @@ export default function BookingPage() {
     const hourStr = hour12.toString().padStart(2, "0")
     return `${hourStr}:00 ${period}`
   })
-
   // Parse a time string like "07:00 PM" into 24h hour and minutes
   const parseTime = (timeStr) => {
     const [time, period] = timeStr.split(" ")
@@ -256,12 +276,12 @@ export default function BookingPage() {
             {/* Booking summary */}
             {endTimes && (
               <>
-              <p className="text-sm text-secondary">
-                Booking from <strong>{formatDateTime(endTimes.startDateTime)}</strong> to <strong>{formatDateTime(endTimes.endDateTime)}</strong>
-              </p>
-              <p className="text-sm text-secondary">
+                <p className="text-sm text-secondary">
+                  Booking from <strong>{formatDateTime(endTimes.startDateTime)}</strong> to <strong>{formatDateTime(endTimes.endDateTime)}</strong>
+                </p>
+                <p className="text-sm text-secondary">
                   total amount {numberOfHours * 100};
-              </p>
+                </p>
               </>
             )}
 
