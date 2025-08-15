@@ -9,6 +9,9 @@ import { Calendar, Clock, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSession, signOut, signIn } from "next-auth/react"
 import Loading from "../components/loading"
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog"
+
+
 export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedStartTime, setSelectedStartTime] = useState("")
@@ -18,6 +21,8 @@ export default function BookingPage() {
   const [contactPhone, setContactPhone] = useState("")
   const [contactEmail, setContactEmail] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
+  const [alertOpen, setAlertOpen] = useState(false)
+  const [alertContent, setAlertContent] = useState({ title: "", description: "" })
 
   //auth
   const { data: session, status } = useSession()
@@ -49,7 +54,69 @@ export default function BookingPage() {
     if (period === "AM" && hour === 12) hour = 0
     return { hour, minute }
   }
+  const handleSubmit = async () => {
+    if (!endTimes) return
 
+    try {
+      const response = await fetch("/api/user/createbooking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDateTime: endTimes.startDateTime,
+          endDateTime: endTimes.endDateTime,
+          numberOfHours,
+          playerCount,
+          contactName,
+          contactPhone,
+          contactEmail,
+          specialRequests,
+        }),
+      })
+
+      const data = await response.json()
+      console.log(data);
+      if (data.success === false) {
+        console.log("false");
+      }
+      if (data.success === false) {
+        // Check if booking is already made
+        if (data.isBooked) {
+          const from = new Date(data.from)
+          const to = new Date(data.to)
+          const createdAt = new Date(data.createdAt)
+
+          if (data.isImage) {
+            setAlertContent({
+              title: "Slot Already Booked",
+              description: `This slot has already been booked from ${from.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${to.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
+            })
+          } else {
+
+            setAlertContent({
+              title: "Slot Pending Verification",
+              description: `This slot has been temporarily reserved (not verified yet) from ${from.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} to ${to.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}. Please check again in ${data.minutesLeft} minute(s).`,
+            })
+          }
+          setAlertOpen(true)
+        } else {
+          setAlertContent({
+            title: "Booking Error",
+            description: data.message || "Something went wrong while booking.",
+          })
+          setAlertOpen(true)
+        }
+      } else {
+        alert("Booking successful!")
+      }
+    } catch (err) {
+      console.error(err)
+      setAlertContent({
+        title: "Network Error",
+        description: "Could not complete your booking. Please try again later.",
+      })
+      setAlertOpen(true)
+    }
+  }
   // Format Date to "YYYY-MM-DD hh:mm AM/PM"
   const formatDateTime = (date) => {
     const yyyy = date.getFullYear()
@@ -167,7 +234,7 @@ export default function BookingPage() {
             {/* Duration (hours) */}
             <div className="space-y-2">
               <Label htmlFor="hours" className="text-sm font-semibold text-primary">
-                Duration (hours)
+                Duration (hours) price Rs 100 per hour
               </Label>
               <Input
                 id="hours"
@@ -188,9 +255,14 @@ export default function BookingPage() {
 
             {/* Booking summary */}
             {endTimes && (
+              <>
               <p className="text-sm text-secondary">
                 Booking from <strong>{formatDateTime(endTimes.startDateTime)}</strong> to <strong>{formatDateTime(endTimes.endDateTime)}</strong>
               </p>
+              <p className="text-sm text-secondary">
+                  total amount {numberOfHours * 100};
+              </p>
+              </>
             )}
 
             {/* Players Count */}
@@ -241,8 +313,8 @@ export default function BookingPage() {
                 id="email"
                 type="email"
                 placeholder="your.email@example.com"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
+                defaultValue={contactEmail}
+                readOnly
               />
             </div>
 
@@ -264,43 +336,25 @@ export default function BookingPage() {
             <div>
               <Button
                 className="bg-primary hover:bg-secondary text-white w-full"
-                onClick={async () => {
-                  if (!endTimes) return
-
-                  try {
-                    const response = await fetch("/api/user/createbooking", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        startDateTime: endTimes.startDateTime,
-                        endDateTime: endTimes.endDateTime,
-                        numberOfHours,
-                        playerCount,
-                        contactName,
-                        contactPhone,
-                        contactEmail,
-                        specialRequests,
-                      }),
-                    })
-
-                    const data = await response.json()
-                    console.log(data);
-                    if (!response.ok) {
-                      alert(data.message || "Something went wrong.")
-                    } else {
-                      alert("Booking successful!")
-                    }
-                  } catch (err) {
-                    console.error(err)
-                    alert("Error submitting booking.")
-                  }
-                }}
+                onClick={handleSubmit}
               >
                 Submit Booking
               </Button>
             </div>
           </CardContent>
         </Card>
+        <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{alertContent.title}</AlertDialogTitle>
+              <AlertDialogDescription>{alertContent.description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button onClick={() => setAlertOpen(false)}>OK</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
       </div>
     </div>
   )
