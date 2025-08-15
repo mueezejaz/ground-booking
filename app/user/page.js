@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,8 +9,7 @@ import { Calendar, Clock, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSession, signOut, signIn } from "next-auth/react"
 import Loading from "../components/loading"
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog"
-
+import AlertModel from "../components/alertModel"
 
 export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState("")
@@ -23,24 +22,43 @@ export default function BookingPage() {
   const [specialRequests, setSpecialRequests] = useState("")
   const [alertOpen, setAlertOpen] = useState(false)
   const [alertContent, setAlertContent] = useState({ title: "", description: "" })
-
+  const hasChecked = useRef(false);
+  let currentAlertFunction = useRef(()=>{});
   //auth
   const { data: session, status } = useSession()
 
   useEffect(() => {
     const createBooking = async () => {
-      if (status === "authenticated") {
-        const response = await fetch("/api/user/getunverifiedbooking", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: session.user.email,
-          }),
-        });
-
-        // Optional: handle the response
-        const data = await response.json();
-        console.log(data);
+      if (status === "authenticated" && !hasChecked.current) {
+        hasChecked.current = true;
+        console.log("entered");
+        try {
+          const response = await fetch("/api/user/getunverifiedbooking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: session.user.email,
+            }),
+          });
+          // Optional: handle the response
+          const data = await response.json();
+          if (data.success) {
+            if (!data.isFound) return
+            if (data.expired) {
+              setAlertContent({ title: "booking expired", description: data.message })
+              alertOpen(true);
+              currentAlertFunction = () => {
+                setAlertOpen(false);
+              }
+              return
+            } else {
+              console.log("to be done send user to verification page")
+            }
+            return
+          }
+        } catch (error) {
+          console.log("some this went wrong")
+        }
       }
     };
 
@@ -100,11 +118,16 @@ export default function BookingPage() {
       }
       if (data.success === false) {
         // Check if booking is already made
+        currentAlertFunction.current = () => {
+          setAlertOpen(false);
+        }
         if (data.isBooked) {
           const from = new Date(data.from)
           const to = new Date(data.to)
           const createdAt = new Date(data.createdAt)
-
+          currentAlertFunction = () => {
+            setAlertOpen(false);
+          }
           if (data.isImage) {
             setAlertContent({
               title: "Slot Already Booked",
@@ -363,18 +386,12 @@ export default function BookingPage() {
             </div>
           </CardContent>
         </Card>
-        <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{alertContent.title}</AlertDialogTitle>
-              <AlertDialogDescription>{alertContent.description}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <Button onClick={() => setAlertOpen(false)}>OK</Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
+        <AlertModel
+          isOpen={alertOpen}
+          setisOpen={setAlertOpen}
+          alertContent={alertContent}
+          onclick={currentAlertFunction.current}
+        />
       </div>
     </div>
   )

@@ -21,7 +21,7 @@ export const POST= handleRouteError(auth(async (req) => {
         .sort({ createdAt: -1 });
 
     if (!booking) {
-        return NextResponse.json({success:true, isFound: true }, { status: 404 });
+        return NextResponse.json({success:true, isFound: false}, { status: 404 });
     }
 
         const createdAt = new Date(booking.createdAt);
