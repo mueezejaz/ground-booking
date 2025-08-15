@@ -67,12 +67,12 @@ export default function PaymentVerificationPage() {
                             setprice(data.booking.price)
                         }
                         return
-                    }else{
-                            setAlertContent({ title: "some thing wrong", description: data.message })
-                            setAlertOpen(true);
-                            currentAlertFunction.current = () => {
-                                setAlertOpen(false);
-                            }
+                    } else {
+                        setAlertContent({ title: "some thing wrong", description: data.message })
+                        setAlertOpen(true);
+                        currentAlertFunction.current = () => {
+                            setAlertOpen(false);
+                        }
                     }
                 } catch (err) {
                     console.log(data);
@@ -104,6 +104,7 @@ export default function PaymentVerificationPage() {
             setImage(file)
             setPreviewUrl(URL.createObjectURL(file))
         }
+
     }
 
     const handleCancel = () => {
@@ -113,14 +114,35 @@ export default function PaymentVerificationPage() {
         }
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!image) {
-            alert("Please upload a screenshot of your payment.")
-            return
+            alert("Please upload a screenshot of your payment.");
+            return;
         }
-        alert("Payment submitted for verification.")
-        // TODO: Upload image and verify
-    }
+
+        const formData = new FormData();
+        formData.append("image", image);
+        formData.append("bookingId", bookingId);
+        formData.append("email", session.user.email);
+
+        try {
+            const res = await fetch("/api/user/uploadimage", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+            console.log(data);
+            if (data.success) {
+                alert("Payment submitted for verification.");
+            } else {
+                alert("Upload failed: " + data.message);
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            alert("Something went wrong during upload.");
+        }
+    };
 
     return (
         <div className="min-h-screen w-full bg-primary text-white flex justify-center items-center px-4 py-10">
