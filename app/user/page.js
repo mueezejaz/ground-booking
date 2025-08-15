@@ -248,16 +248,37 @@ export default function BookingPage() {
             <div>
               <Button
                 className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white w-full"
-                onClick={() => alert("Booking submitted!")}
-                disabled={
-                  !selectedDate ||
-                  !selectedStartTime ||
-                  !numberOfHours ||
-                  !playerCount ||
-                  !contactName ||
-                  !contactPhone ||
-                  !contactEmail
-                }
+                onClick={async () => {
+                  if (!endTimes) return
+
+                  try {
+                    const response = await fetch("/api/user/createbooking", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        startDateTime: endTimes.startDateTime,
+                        endDateTime: endTimes.endDateTime,
+                        playerCount,
+                        contactName,
+                        contactPhone,
+                        contactEmail,
+                        specialRequests,
+                      }),
+                    })
+
+                    const data = await response.json()
+
+                    if (!response.ok) {
+                      alert(data.message || "Something went wrong.")
+                    } else {
+                      alert("Booking successful!")
+                      // Optionally reset form
+                    }
+                  } catch (err) {
+                    console.error(err)
+                    alert("Error submitting booking.")
+                  }
+                }}
               >
                 Submit Booking
               </Button>
