@@ -5,7 +5,7 @@ export default function Login() {
         <>
             <h1 className="bg-primary">loging page</h1>
             <button onClick={() => {
-                signIn('google');
+                signIn('google' , {callbackUrl:"/"});
             }}>log in</button>
         </>
     )

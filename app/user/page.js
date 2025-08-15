@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar, Clock, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
+import { useSession, signOut, signIn } from "next-auth/react"
+import Loading from "../components/loading"
 export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedStartTime, setSelectedStartTime] = useState("")
@@ -18,6 +19,20 @@ export default function BookingPage() {
   const [contactEmail, setContactEmail] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
 
+  //auth
+  const { data: session, status } = useSession()
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      signIn("google", { callbackUrl: window.location.href })
+    } else {
+      if (status != "loading")
+        setContactEmail(session.user?.email);
+    }
+  }, [status])
+
+  if (status === "loading") {
+    return <Loading />
+  }
   const startTimes = Array.from({ length: 24 }).map((_, i) => {
     const hour24 = i
     const period = hour24 >= 12 ? "PM" : "AM"
@@ -84,32 +99,34 @@ export default function BookingPage() {
   const endTimes = calculateEndDateTime()
 
   const handleSignOut = () => {
-    alert("Signed out!")
+    signOut();
   }
-
+  if (status === "unauthenticated") {
+    return <Loading />
+  }
   return (
-    <div className="relative h-screen w-full overflow-auto bg-[var(--color-secondary)] text-[var(--color-primary)]">
+    <div className="relative h-screen w-full overflow-auto bg-secondary text-primary">
       {/* Navbar */}
-      <nav className="w-full px-6 py-4 bg-[var(--color-primary)] text-white flex justify-between items-center">
+      <nav className="w-full px-6 py-4 bg-primary text-white flex justify-between items-center">
         <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
           🏏 Ground Booker
         </Link>
-        <Button onClick={handleSignOut} className="bg-[var(--color-accent)] hover:bg-red-600 text-white">
+        <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
           Sign Out
         </Button>
       </nav>
 
       {/* Booking Form */}
-      <div className="max-w-2xl mx-auto py-10 px-4 text-[var(--color-primary)]">
+      <div className="max-w-2xl mx-auto py-10 px-4 text-primary">
         <Card className="shadow-xl border-0 bg-white">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold text-[var(--color-primary)]">Book a Ground</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-primary">Book a Ground</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Date */}
             <div className="space-y-2">
-              <Label htmlFor="date" className="text-sm font-semibold flex items-center text-[var(--color-primary)]">
-                <Calendar className="w-4 h-4 mr-2 text-[var(--color-secondary)]" />
+              <Label htmlFor="date" className="text-sm font-semibold flex items-center text-primary">
+                <Calendar className="w-4 h-4 mr-2 text-secondary" />
                 Date
               </Label>
               <Input
@@ -126,15 +143,15 @@ export default function BookingPage() {
 
             {/* Start Time */}
             <div className="space-y-2">
-              <Label htmlFor="startTime" className="text-sm font-semibold flex items-center text-[var(--color-primary)]">
-                <Clock className="w-4 h-4 mr-2 text-[var(--color-secondary)]" />
+              <Label htmlFor="startTime" className="text-sm font-semibold flex items-center text-primary">
+                <Clock className="w-4 h-4 mr-2 text-secondary" />
                 Start Time
               </Label>
               <select
                 id="startTime"
                 value={selectedStartTime}
                 onChange={(e) => setSelectedStartTime(e.target.value)}
-                className="w-full px-3 py-2 border border-[var(--color-primary)] rounded-md"
+                className="w-full px-3 py-2 border border-primary rounded-md"
                 disabled={!selectedDate}
               >
                 <option value="">Choose start time</option>
@@ -149,7 +166,7 @@ export default function BookingPage() {
 
             {/* Duration (hours) */}
             <div className="space-y-2">
-              <Label htmlFor="hours" className="text-sm font-semibold text-[var(--color-primary)]">
+              <Label htmlFor="hours" className="text-sm font-semibold text-primary">
                 Duration (hours)
               </Label>
               <Input
@@ -161,7 +178,6 @@ export default function BookingPage() {
                 value={numberOfHours}
                 onChange={(e) => {
                   const val = e.target.value
-                  // Allow only numbers 1-24
                   if (val === "" || (Number(val) >= 1 && Number(val) <= 24)) {
                     setNumberOfHours(val)
                   }
@@ -172,15 +188,15 @@ export default function BookingPage() {
 
             {/* Booking summary */}
             {endTimes && (
-              <p className="text-sm text-[var(--color-secondary)]">
+              <p className="text-sm text-secondary">
                 Booking from <strong>{formatDateTime(endTimes.startDateTime)}</strong> to <strong>{formatDateTime(endTimes.endDateTime)}</strong>
               </p>
             )}
 
             {/* Players Count */}
             <div className="space-y-2">
-              <Label htmlFor="players" className="text-sm font-semibold flex items-center text-[var(--color-primary)]">
-                <Users className="w-4 h-4 mr-2 text-[var(--color-secondary)]" />
+              <Label htmlFor="players" className="text-sm font-semibold flex items-center text-primary">
+                <Users className="w-4 h-4 mr-2 text-secondary" />
                 Number of Players
               </Label>
               <Input
@@ -196,7 +212,7 @@ export default function BookingPage() {
 
             {/* Contact Info */}
             <div className="space-y-4">
-              <Label htmlFor="name" className="text-sm font-semibold text-[var(--color-primary)]">
+              <Label htmlFor="name" className="text-sm font-semibold text-primary">
                 Full Name
               </Label>
               <Input
@@ -207,7 +223,7 @@ export default function BookingPage() {
                 onChange={(e) => setContactName(e.target.value)}
               />
 
-              <Label htmlFor="phone" className="text-sm font-semibold text-[var(--color-primary)]">
+              <Label htmlFor="phone" className="text-sm font-semibold text-primary">
                 Phone Number
               </Label>
               <Input
@@ -218,7 +234,7 @@ export default function BookingPage() {
                 onChange={(e) => setContactPhone(e.target.value)}
               />
 
-              <Label htmlFor="email" className="text-sm font-semibold text-[var(--color-primary)]">
+              <Label htmlFor="email" className="text-sm font-semibold text-primary">
                 Email Address
               </Label>
               <Input
@@ -232,7 +248,7 @@ export default function BookingPage() {
 
             {/* Special Requests */}
             <div className="space-y-2">
-              <Label htmlFor="requests" className="text-sm font-semibold text-[var(--color-primary)]">
+              <Label htmlFor="requests" className="text-sm font-semibold text-primary">
                 Special Requests
               </Label>
               <Textarea
@@ -247,7 +263,7 @@ export default function BookingPage() {
             {/* Submit Button */}
             <div>
               <Button
-                className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white w-full"
+                className="bg-primary hover:bg-secondary text-white w-full"
                 onClick={async () => {
                   if (!endTimes) return
 
@@ -258,6 +274,7 @@ export default function BookingPage() {
                       body: JSON.stringify({
                         startDateTime: endTimes.startDateTime,
                         endDateTime: endTimes.endDateTime,
+                        numberOfHours,
                         playerCount,
                         contactName,
                         contactPhone,
@@ -267,12 +284,11 @@ export default function BookingPage() {
                     })
 
                     const data = await response.json()
-
+                    console.log(data);
                     if (!response.ok) {
                       alert(data.message || "Something went wrong.")
                     } else {
                       alert("Booking successful!")
-                      // Optionally reset form
                     }
                   } catch (err) {
                     console.error(err)
