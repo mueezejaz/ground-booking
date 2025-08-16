@@ -53,7 +53,7 @@ export default function BookingPage() {
               }
               return
             } else {
-              if(!data.booking.isImage){
+              if (!data.booking.isImage) {
                 router.push(`/user/verify/${data.booking._id}`)
               }
             }
@@ -225,15 +225,21 @@ export default function BookingPage() {
     return <Loading />
   }
   return (
-    <div className="relative h-screen w-full overflow-auto bg-secondary text-primary">
+    <div className="relative h-screen w-full overflow-auto bg-white text-primary">
       {/* Navbar */}
       <nav className="w-full px-6 py-4 bg-primary text-white flex justify-between items-center">
         <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
           🏏 Ground Booker
         </Link>
-        <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
-          Sign Out
-        </Button>
+
+        <div className="flex flex-row space-x-2">
+          <Button onClick={()=>{router.push("/user/bookings")}} className="bg-secondary hover:bg-red-600 text-white">
+            bookings
+          </Button>
+          <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
+            Sign Out
+          </Button>
+        </div>
       </nav>
 
       {/* Booking Form */}
