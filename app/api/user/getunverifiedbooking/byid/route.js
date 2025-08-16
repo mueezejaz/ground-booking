@@ -27,7 +27,7 @@ export const POST = handleRouteError(auth(async (req) => {
         throw new ApiError(401, "Unauthorized user");
     }
 
-    const booking = await Booking.findOne({ _id: id, isImage: false }).sort({ createdAt: -1 });
+    const booking = await Booking.findOne({ _id: id}).sort({ createdAt: -1 });
 
     if (!booking) {
         return NextResponse.json({ success: true, isFound: false }, { status: 404 });
@@ -38,7 +38,6 @@ export const POST = handleRouteError(auth(async (req) => {
     const diffMs = now.getTime() - createdAt.getTime();
     const diffMinutes = Math.floor(diffMs / 60000);
     const minutesLeft = Math.max(20 - diffMinutes, 0);
-
     if (minutesLeft <= 0) {
         await Booking.deleteOne({ _id: booking._id });
         return NextResponse.json({

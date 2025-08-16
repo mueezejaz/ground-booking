@@ -9,6 +9,7 @@ const BookingSchema = new mongoose.Schema({
     contactPhone: { type: String, required: true },
     price: { type: Number, required: true },
     isImage: { type: Boolean, required: true },
+    status:{type:String, required:true },
     imageData: { type: Object },
     contactEmail: { type: String, required: true },
     specialRequests: { type: String },

@@ -7,22 +7,30 @@ import handleRouteError from "@/app/utils/HandleApiError";
 import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
 
-
-
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export let POST = handleRouteError(async (req) => {
+export let POST = auth(handleRouteError(async (req) => {
     await dbConnect();
 
     const formData = await req.formData();
     const file = formData.get('image');
+    const email = formData.get("email");
+    const bookingId = formData.get("bookingId");
+
+    if (!req.auth.user || req.auth.user.email !== email) {
+        throw new ApiError(401, "Unauthorized user");
+    }
 
     if (!file) {
         throw new ApiError(400, "No file was provided in the request.");
+    }
+
+    if (!bookingId) {
+        throw new ApiError(400, "Booking ID is missing. Please provide a booking ID.");
     }
 
     if (typeof file === 'string') {
@@ -39,32 +47,36 @@ export let POST = handleRouteError(async (req) => {
         throw new ApiError(400, "File size exceeds 5MB limit.");
     }
 
+    // Upload image to Cloudinary
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const base64Image = buffer.toString('base64');
-
     const dataUri = `data:${file.type};base64,${base64Image}`;
 
     const uploadResult = await cloudinary.uploader.upload(dataUri, {
-        folder: 'varientImage',
-        resource_type: 'auto',
+        folder: 'bookingImages',
+        resource_type: 'image',
     });
 
-    console.log('Cloudinary upload result:', uploadResult);
+    // Find and update the booking
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+        throw new ApiError(404, "Booking not found");
+    }
+    if(booking.isImage){
+        throw new ApiError(400, "image is already uploaded");
+    }
+    booking.imageData = {
+        publicId: uploadResult.public_id,
+        url: uploadResult.secure_url,
+        fileName: file.name,
+    };
+    booking.isImage = true;
 
-
+    await booking.save();
 
     return NextResponse.json({
         success: true,
-        // message: 'Image uploaded to Cloudinary and saved to database successfully!',
-        // imageUrl: uploadResult.secure_url,
-        // publicId: uploadResult.public_id,
-        // fileName: file.name,
-        // dbId: newImage._id, 
+        message: "Image uploaded and attached to booking successfully.",
     }, { status: 200 });
-});
-
-// Optionally, handle other HTTP methods
-export async function GET() {
-    return NextResponse.json({ message: 'Method Not Allowed' }, { status: 405 });
-}
+}));

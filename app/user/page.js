@@ -53,7 +53,9 @@ export default function BookingPage() {
               }
               return
             } else {
-              router.push(`/user/verify/${data.booking._id}`)
+              if(!data.booking.isImage){
+                router.push(`/user/verify/${data.booking._id}`)
+              }
             }
             return
           } else {

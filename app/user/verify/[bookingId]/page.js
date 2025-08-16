@@ -15,7 +15,7 @@ export default function PaymentVerificationPage() {
     const [image, setImage] = useState(null)
     const [previewUrl, setPreviewUrl] = useState(null)
     const { data: session, status } = useSession()
-    const [price, setprice] = useState(0);
+    const [data, setData] = useState(0);
     const inputRef = useRef(null);
     const [alertOpen, setAlertOpen] = useState(false)
     const [alertContent, setAlertContent] = useState({ title: "", description: "" })
@@ -64,7 +64,9 @@ export default function PaymentVerificationPage() {
                             return
                         } else {
                             setTimeLeft(data.minutesLeft);
-                            setprice(data.booking.price)
+                            setPreviewUrl(data.booking?.imageData?.url)
+                            setData(data.booking)
+
                         }
                         return
                     } else {
@@ -115,6 +117,10 @@ export default function PaymentVerificationPage() {
     }
 
     const handleSubmit = async () => {
+        if (data.isImage) {
+            alert("image already uploaded")
+            return
+        }
         if (!image) {
             alert("Please upload a screenshot of your payment.");
             return;
@@ -164,7 +170,7 @@ export default function PaymentVerificationPage() {
                     <div className="space-y-1">
                         <Label className="text-primary font-medium">Amount to Pay</Label>
                         <p className="bg-secondary text-dark px-4 py-2 rounded-md font-bold">
-                            {price}
+                            {data.price}
                         </p>
                     </div>
 
@@ -173,9 +179,9 @@ export default function PaymentVerificationPage() {
                             Upload Payment Screenshot
                         </Label>
                         <Input ref={inputRef} type="file" accept="image/*" onChange={handleImageUpload} />
-                        {image && (
+                        {(image || data.isImage) && (
                             <div className="mt-2 space-y-2">
-                                <p className="text-sm text-secondary">Selected: {image.name}</p>
+                                <p className="text-sm text-secondary">Selected: {image ? image.name : data.imageData.fileName}</p>
                                 {previewUrl && (
                                     <img
                                         src={previewUrl}
@@ -190,26 +196,37 @@ export default function PaymentVerificationPage() {
                     <div className="flex flex-col gap-4">
                         <Button
                             onClick={() => {
+                                if (data.isImage) {
+                                    alert("image already uploaded")
+                                    return
+                                }
                                 inputRef.current.click();
                             }}
                             className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
                         >
-                            click here to upload image
+                            {
+                                data.isImage ? "Image is already uploaded" : "click here to select image"
+                            }
                         </Button>
 
                         <Button
                             onClick={handleSubmit}
                             className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
                         >
-                            Submit for Verification
+                            {
+                                data.isImage ? "Image is already uploaded" : "submit for verification"
+                            }
                         </Button>
-                        <Button
-                            variant="destructive"
-                            className="w-full"
-                            onClick={handleCancel}
-                        >
-                            Cancel Booking
-                        </Button>
+                        {
+                            !data.isImage &&
+                            <Button
+                                variant="destructive"
+                                className="w-full"
+                                onClick={handleCancel}
+                            >
+                                Cancel Booking
+                            </Button>
+                        }
                     </div>
                 </CardContent>
             </Card>

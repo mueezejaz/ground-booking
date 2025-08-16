@@ -89,6 +89,7 @@ export const POST = handleRouteError(auth(async (req) => {
             contactName: body.contactName,
             contactPhone: body.contactPhone,
             price: body.numberOfHours * 100,
+            status:"Panding",
             isImage: false,
             contactEmail: body.contactEmail,
             specialRequests: body.specialRequests || "",
