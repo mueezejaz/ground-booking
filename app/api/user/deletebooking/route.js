@@ -25,7 +25,6 @@ export const POST = handleRouteError(auth(async (req) => {
         throw new ApiError(401, "Unauthorized user");
     }
 
-    // Delete the booking by ID
     const deletedBooking = await Booking.findByIdAndDelete(id);
 
     if (!deletedBooking) {

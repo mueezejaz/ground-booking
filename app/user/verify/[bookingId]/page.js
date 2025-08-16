@@ -109,10 +109,28 @@ export default function PaymentVerificationPage() {
 
     }
 
-    const handleCancel = () => {
+    const handleCancel = async () => {
         if (confirm("Are you sure you want to cancel this booking?")) {
-            alert("Booking cancelled.")
-            // TODO: Cancel booking API call
+            const res = await fetch('/api/user/deletebooking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // if using cookies for auth
+                body: JSON.stringify({
+                    email: session.user.email, // TODO: replace with actual logged-in user email
+                    id: bookingId,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAlertContent({ title: "success", description: data.message });
+                setAlertOpen(true);
+                currentAlertFunction.current = ()=>{
+                    router.push("/user");
+                    setAlertOpen(true);
+                }
+            }
         }
     }
 
