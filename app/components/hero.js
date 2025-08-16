@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 export default function Hero() {
   return (
     <section className="relative h-screen w-full overflow-hidden text-[var(--color-secondary)]">
-      <video
+      {/* <video
         className="absolute inset-0 object-cover w-full h-full"
         src="./bg.mp4"
         autoPlay
@@ -10,7 +10,7 @@ export default function Hero() {
         muted
         playsInline
         preload="auto"
-      />
+      /> */}
       <div className="absolute inset-0 bg-black opacity-50 backdrop-blur-sm"></div>
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 sm:px-6">
         <h1
