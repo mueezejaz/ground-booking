@@ -39,7 +39,6 @@ export default function PaymentVerificationPage() {
                         },
                         credentials: 'include', // if using cookies for auth
                         body: JSON.stringify({
-                            email: session.user.email, // TODO: replace with actual logged-in user email
                             id: bookingId,
                         }),
                     });
@@ -119,7 +118,6 @@ export default function PaymentVerificationPage() {
                 },
                 credentials: 'include', // if using cookies for auth
                 body: JSON.stringify({
-                    email: session.user.email, // TODO: replace with actual logged-in user email
                     id: bookingId,
                 }),
             });
@@ -129,7 +127,7 @@ export default function PaymentVerificationPage() {
                 setAlertOpen(true);
                 currentAlertFunction.current = () => {
                     router.push("/user");
-                    setAlertOpen(true);
+                    setAlertOpen(false);
                 }
             }
         }
@@ -148,8 +146,6 @@ export default function PaymentVerificationPage() {
         const formData = new FormData();
         formData.append("image", image);
         formData.append("bookingId", bookingId);
-        formData.append("email", session.user.email);
-
         try {
             const res = await fetch("/api/user/uploadimage", {
                 method: "POST",
@@ -159,7 +155,12 @@ export default function PaymentVerificationPage() {
             const data = await res.json();
             console.log(data);
             if (data.success) {
-                alert("Payment submitted for verification.");
+                setAlertContent({ title: "success", description: data.message });
+                setAlertOpen(true);
+                currentAlertFunction.current = () => {
+                    router.push("/user/bookings");
+                    setAlertOpen(false);
+                }
             } else {
                 alert("Upload failed: " + data.message);
             }

@@ -7,11 +7,10 @@ import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
-    const body = await req.json();
-
-    if (!req.auth.user || !req.auth.user.email) {
-        throw new ApiError(403, `Forbidden`);
+    if (!req.auth.user && !req.auth.user.email) {
+        throw new ApiError(403, "Forbidden");
     }
+    const body = await req.json();
     const requiredFields = [
         "startDateTime",
         "endDateTime",
@@ -19,7 +18,6 @@ export const POST = handleRouteError(auth(async (req) => {
         "numberOfHours",
         "contactName",
         "contactPhone",
-        "contactEmail",
     ];
 
     for (const field of requiredFields) {

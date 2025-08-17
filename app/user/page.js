@@ -35,11 +35,8 @@ export default function BookingPage() {
         console.log("entered");
         try {
           const response = await fetch("/api/user/getunverifiedbooking", {
-            method: "POST",
+            method: "GET",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: session.user.email,
-            }),
           });
           // Optional: handle the response
           const data = await response.json();
@@ -116,7 +113,6 @@ export default function BookingPage() {
           playerCount,
           contactName,
           contactPhone,
-          contactEmail,
           specialRequests,
         }),
       })

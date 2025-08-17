@@ -9,12 +9,13 @@ import { auth } from "@/app/auth";
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
 
-    const body = await req.json();
-    const { email, id } = body;
-
-    if (!email) {
-        throw new ApiError(400, "email is required");
+    if (!req.auth.user && !req.auth.user.email) {
+        throw new ApiError(403, "Forbidden");
     }
+
+    const body = await req.json();
+    const { id } = body;
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(400, "Invalid booking id format");
     }
@@ -23,11 +24,7 @@ export const POST = handleRouteError(auth(async (req) => {
         throw new ApiError(400, "booking id is required");
     }
 
-    if (!req.auth.user || req.auth.user.email !== email) {
-        throw new ApiError(401, "Unauthorized user");
-    }
-
-    const booking = await Booking.findOne({ _id: id}).sort({ createdAt: -1 });
+    const booking = await Booking.findOne({ _id: id }).sort({ createdAt: -1 });
 
     if (!booking) {
         return NextResponse.json({ success: true, isFound: false }, { status: 404 });

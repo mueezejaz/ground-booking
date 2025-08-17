@@ -15,15 +15,13 @@ cloudinary.config({
 
 export let POST = auth(handleRouteError(async (req) => {
     await dbConnect();
+    if (!req.auth.user && !req.auth.user.email) {
+        throw new ApiError(403, "Forbidden");
+    }
 
     const formData = await req.formData();
     const file = formData.get('image');
-    const email = formData.get("email");
     const bookingId = formData.get("bookingId");
-
-    if (!req.auth.user || req.auth.user.email !== email) {
-        throw new ApiError(401, "Unauthorized user");
-    }
 
     if (!file) {
         throw new ApiError(400, "No file was provided in the request.");
@@ -63,7 +61,7 @@ export let POST = auth(handleRouteError(async (req) => {
     if (!booking) {
         throw new ApiError(404, "Booking not found");
     }
-    if(booking.isImage){
+    if (booking.isImage) {
         throw new ApiError(400, "image is already uploaded");
     }
     booking.imageData = {
@@ -77,6 +75,6 @@ export let POST = auth(handleRouteError(async (req) => {
 
     return NextResponse.json({
         success: true,
-        message: "Image uploaded and attached to booking successfully.",
+        message: "Image uploaded and attached to booking successfully wait for admin to verify payment you can view you status in booking page.",
     }, { status: 200 });
 }));
