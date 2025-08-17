@@ -25,6 +25,7 @@ export const POST = handleRouteError(auth(async (req) => {
         { new: true }
     );
 
+    console.log(updatedBooking);
     if (!updatedBooking) {
         throw new ApiError(404, "Booking not found");
     }

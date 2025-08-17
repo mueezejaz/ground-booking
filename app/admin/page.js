@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Clock,
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation'
+import { useSession, signOut, signIn } from "next-auth/react"
 import {
   Dialog,
   DialogContent,
@@ -31,100 +33,90 @@ import {
 } from "@/components/ui/dialog";
 
 // Dummy data for bookings
-const dummyBookings = [
-  {
-    _id: "66a2a1b1a3b9c3d1e3f8b3a0",
-    startDateTime: "2024-07-25T10:00:00.000Z",
-    endDateTime: "2024-07-25T12:00:00.000Z",
-    numberOfHours: 2,
-    playerCount: 4,
-    contactName: "John Doe",
-    contactPhone: "123-456-7890",
-    price: 5000,
-    isImage: true,
-    status: "confirmed",
-    imageData: {
-      url: "https://images.unsplash.com/photo-1554123168-b400f9c806ca?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    contactEmail: "john.doe@example.com",
-    specialRequests: "Need a golf cart.",
-    createdAt: "2024-07-24T12:00:00.000Z",
-  },
-  {
-    _id: "66a2a1b1a3b9c3d1e3f8b3a1",
-    startDateTime: "2024-07-26T14:00:00.000Z",
-    endDateTime: "2024-07-26T16:00:00.000Z",
-    numberOfHours: 2,
-    playerCount: 2,
-    contactName: "Jane Smith",
-    contactPhone: "098-765-4321",
-    price: 5000,
-    isImage: false,
-    status: "pending",
-    imageData: null,
-    contactEmail: "jane.smith@example.com",
-    specialRequests: "",
-    createdAt: "2024-07-24T13:00:00.000Z",
-  },
-    {
-    _id: "66a2a1b1a3b9c3d1e3f8b3a2",
-    startDateTime: "2024-07-27T09:00:00.000Z",
-    endDateTime: "2024-07-27T11:00:00.000Z",
-    numberOfHours: 2,
-    playerCount: 3,
-    contactName: "Peter Jones",
-    contactPhone: "555-555-5555",
-    price: 7500,
-    isImage: true,
-    status: "cancelled",
-    imageData: {
-      url: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    contactEmail: "peter.jones@example.com",
-    specialRequests: "Left-handed clubs needed.",
-    createdAt: "2024-07-25T10:00:00.000Z",
-  },
-];
-
-
 const AdminBookingsPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [bookings, setBookings] = useState(dummyBookings);
-  const [filteredBookings, setFilteredBookings] = useState(dummyBookings);
-  const [showUnverified, setShowUnverified] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  // const [filteredBookings, setFilteredBookings] = useState([]);
+  const [showUnverified, setShowUnverified] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: session, status } = useSession();
+  const isHist = useRef(false);
+  const router = useRouter();
   const [fullscreenImage, setFullscreenImage] = useState(null);
-
-  const handleStatusUpdate = () => {
-    if (!selectedBooking) return;
-
-    // Update the booking in the local state
-    const updatedBookings = bookings.map((booking) =>
-      booking._id === selectedBooking._id ? selectedBooking : booking
-    );
-    setBookings(updatedBookings);
-    setSelectedBooking(null);
+  if (status === "unauthenticated") {
+    router.push("/user");
+  }
+  useEffect(() => {
+    async function getBookings() {
+      try {
+        const res = await fetch("/api/admin/allbooking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            unVerified: showUnverified,
+          })
+        });
+        isHist.current = false;
+        const data = await res.json();
+        console.log(data);
+        if (data.success) {
+          setBookings(data.bookings);
+        } else {
+          alert("error success false");
+          //handle error and unauth
+        }
+      } catch (error) {
+        console.log(error)
+        alert("something wend wrog")
+      }
+    }
+    if (status === "authenticated") {
+      getBookings();
+    }
+  }, [status, showUnverified]);
+  const handleStatusUpdate = async () => {
+    if (!selectedBooking) { return };
+    try {
+      const res = await fetch("/api/admin/updatebooking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: selectedBooking._id,
+          status: selectedBooking.status
+        })
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success) {
+        alert("status updated successfully");
+        setBookings((prevBookings) => {
+          return prevBookings.filter((e) => e._id !== selectedBooking._id);
+        });
+      } else {
+        alert("error success false");
+        //handle error and unauth
+      }
+    } catch (error) {
+      console.log(error)
+      alert("something wend wrog")
+    }
   };
 
-  useEffect(() => {
-    let filtered = bookings;
-
-    if (showUnverified) {
-      // Assuming "unverified" means no image uploaded
-      filtered = filtered.filter((booking) => !booking.isImage);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (booking) =>
-          booking.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          booking.contactPhone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          booking._id.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredBookings(filtered);
-  }, [showUnverified, bookings, searchQuery]);
+  // useEffect(() => {
+  //   let filtered = bookings;
+  //   if (showUnverified) {
+  //     filtered = filtered.filter((booking) => !booking.isImage);
+  //   }
+  //   if (searchQuery) {
+  //     filtered = filtered.filter(
+  //       (booking) =>
+  //         booking.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //         booking.contactPhone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //         booking._id.toLowerCase().includes(searchQuery.toLowerCase())
+  //     );
+  //   }
+  //   setFilteredBookings(filtered);
+  // }, [showUnverified, bookings, searchQuery]);
 
   const getStatusVariant = (status) => {
     switch (status) {
@@ -185,7 +177,6 @@ const AdminBookingsPage = () => {
             {booking.numberOfHours}h
           </div>
         </div>
-
         <div className="flex items-center justify-between">
           <div className="flex items-center text-sm text-gray-600">
             <Users className="w-4 h-4 mr-2" />
@@ -195,7 +186,6 @@ const AdminBookingsPage = () => {
             Rs. {booking.price.toLocaleString()}
           </div>
         </div>
-
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center">
             {booking.isImage ? (
@@ -235,34 +225,34 @@ const AdminBookingsPage = () => {
               </CardDescription>
             </CardHeader>
           </Card>
-
-          <div className="mb-6 flex justify-between items-center">
+          <div className="mb-6 flex flex-col md:flex-row justify-between md:items-center">
             <div>
-                <h2 className="text-2xl font-semibold text-primary mb-2">All Bookings</h2>
-                <p className="text-gray-600">View all user bookings</p>
+              <h2 className="text-2xl font-semibold text-primary mb-2">All Bookings</h2>
+              <p className="text-gray-600">View all user bookings</p>
             </div>
-            <div className="flex items-center gap-4">
-                <input
-                    type="text"
-                    placeholder="Search by email, phone, or ID"
-                    className="p-2 border rounded"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Button onClick={() => setShowUnverified(!showUnverified)}>
+            <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+              <input
+                type="text"
+                placeholder="Search by email, phone, or ID"
+                className="p-2 border rounded w-full md:w-auto"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button className="w-full md:w-auto" onClick={() => setShowUnverified(!showUnverified)}>
                 {showUnverified ? "Show All" : "Show Unverified"}
-                </Button>
+              </Button>
+              <Button className="w-full md:w-auto" >
+                create new booking
+              </Button>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBookings.map((booking) => (
+            {bookings.map((booking) => (
               <BookingCard key={booking._id} booking={booking} />
             ))}
           </div>
         </div>
       </div>
-
-      {/* Booking Details Dialog */}
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
         <DialogContent className="max-w-3xl z-[100] overflow-y-auto max-h-[90vh]">
           {selectedBooking && (
@@ -275,7 +265,6 @@ const AdminBookingsPage = () => {
                   Here are the full details of the booking.
                 </DialogDescription>
               </DialogHeader>
-
               {selectedBooking.isImage && selectedBooking.imageData && (
                 <div className="relative w-full h-80 rounded-lg overflow-hidden">
                   <img
@@ -294,7 +283,6 @@ const AdminBookingsPage = () => {
                   </Button>
                 </div>
               )}
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">Contact Information</h4>
@@ -313,7 +301,6 @@ const AdminBookingsPage = () => {
                     </div>
                   </div>
                 </div>
-
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2">Booking Info</h4>
                   <div className="space-y-2">
@@ -378,7 +365,6 @@ const AdminBookingsPage = () => {
                   </div>
                 </div>
               </div>
-
               {selectedBooking.specialRequests && (
                 <div className="mt-4">
                   <h4 className="font-semibold text-gray-700 mb-2">Special Requests</h4>
@@ -387,11 +373,11 @@ const AdminBookingsPage = () => {
                   </p>
                 </div>
               )}
-              <div className="flex justify-end mt-6">
+              <div className="flex flex-col md:flex-row justify-end mt-6">
                 <Button
                   onClick={() => setSelectedBooking(null)}
                   variant="outline"
-                  className="mr-2"
+                  className="mr-0 md:mr-2 mb-2 md:mb-0"
                 >
                   Cancel
                 </Button>
@@ -401,8 +387,6 @@ const AdminBookingsPage = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Full-screen Image Dialog */}
       <Dialog open={!!fullscreenImage} onOpenChange={() => setFullscreenImage(null)}>
         <DialogContent className="max-w-full h-full p-4 flex items-center justify-center bg-black/80 backdrop-blur-sm z-[110]">
           <div className="relative w-full h-full flex items-center justify-center">
@@ -425,7 +409,6 @@ const AdminBookingsPage = () => {
     </>
   );
 };
-
 export default AdminBookingsPage;
 
 

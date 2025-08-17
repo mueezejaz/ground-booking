@@ -10,7 +10,7 @@ export const POST = handleRouteError(auth(async (req) => {
     const body = await req.json();
 
     if (!req.auth.user || req.auth.user.email !== body.contactEmail) {
-        throw new ApiError(401, `unauthorized user`);
+        throw new ApiError(403, `unauthorized user`);
     }
     const requiredFields = [
         "startDateTime",
@@ -89,6 +89,7 @@ export const POST = handleRouteError(auth(async (req) => {
             contactName: body.contactName,
             contactPhone: body.contactPhone,
             price: body.numberOfHours * 100,
+            //to do fix this 
             status:"Panding",
             isImage: false,
             contactEmail: body.contactEmail,
