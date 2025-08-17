@@ -21,9 +21,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import AlertModel from "../components/alertModel";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation'
 import { useSession, signOut, signIn } from "next-auth/react"
+import Loading from "../components/componentLoading";
 import {
   Dialog,
   DialogContent,
@@ -55,9 +57,14 @@ const AdminBookingsPage = () => {
   const [showUnverified, setShowUnverified] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   const isHist = useRef(false);
   const router = useRouter();
   const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false)
+  const [alertContent, setAlertContent] = useState({ title: "", description: "" })
+  let currentAlertFunction = useRef(() => { });
   const debouncedSearchTerm = useDebounce(searchQuery, 1000);
   if (status === "unauthenticated") {
     router.push("/user");
@@ -65,6 +72,7 @@ const AdminBookingsPage = () => {
   useEffect(() => {
     async function getBookings() {
       try {
+        setLoading(true);
         const res = await fetch("/api/admin/allbooking", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -72,14 +80,21 @@ const AdminBookingsPage = () => {
             unVerified: showUnverified,
           })
         });
-        isHist.current = false;
+        setLoading(false);
         const data = await res.json();
         console.log(data);
         if (data.success) {
           setBookings(data.bookings);
         } else {
-          alert("error success false");
-          //handle error and unauth
+          setAlertContent({
+            title: "Error",
+            description: data.message || "Something went wrong",
+          })
+          setAlertOpen(true)
+          currentAlertFunction.current = () => {
+            setAlertOpen(false);
+            if (data.message === "Forbidden") router.push("/user");
+          }
         }
       } catch (error) {
         console.log(error)
@@ -110,8 +125,15 @@ const AdminBookingsPage = () => {
           if (data.success) {
             setBookings(data.bookings);
           } else {
-            alert("error success false");
-            //handle error and unauth
+            setAlertContent({
+              title: "Error",
+              description: data.message || "Something went wrong",
+            })
+            setAlertOpen(true)
+            currentAlertFunction.current = () => {
+              setAlertOpen(false);
+              if (data.message === "Forbidden") router.push("/user");
+            }
           }
         } catch (error) {
           console.log(error)
@@ -127,6 +149,7 @@ const AdminBookingsPage = () => {
   const handleStatusUpdate = async () => {
     if (!selectedBooking) { return };
     try {
+      setSaveLoading(true);
       const res = await fetch("/api/admin/updatebooking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -135,6 +158,7 @@ const AdminBookingsPage = () => {
           status: selectedBooking.status
         })
       });
+      setSaveLoading(false);
       const data = await res.json();
       console.log(data);
       if (data.success) {
@@ -142,9 +166,17 @@ const AdminBookingsPage = () => {
         setBookings((prevBookings) => {
           return prevBookings.filter((e) => e._id !== selectedBooking._id);
         });
+        setSelectedBooking(false);
       } else {
-        alert("error success false");
-        //handle error and unauth
+        setAlertContent({
+          title: "Error",
+          description: data.message || "Something went wrong",
+        })
+        setAlertOpen(true)
+        currentAlertFunction.current = () => {
+          setAlertOpen(false);
+          if (data.message === "Forbidden") router.push("/user");
+        }
       }
     } catch (error) {
       console.log(error)
@@ -154,21 +186,6 @@ const AdminBookingsPage = () => {
   async function handleSearch(e) {
     setSearchQuery(e.target.value);
   }
-  // useEffect(() => {
-  //   let filtered = bookings;
-  //   if (showUnverified) {
-  //     filtered = filtered.filter((booking) => !booking.isImage);
-  //   }
-  //   if (searchQuery) {
-  //     filtered = filtered.filter(
-  //       (booking) =>
-  //         booking.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //         booking.contactPhone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-  //         booking._id.toLowerCase().includes(searchQuery.toLowerCase())
-  //     );
-  //   }
-  //   setFilteredBookings(filtered);
-  // }, [showUnverified, bookings, searchQuery]);
 
   const getStatusVariant = (status) => {
     switch (status) {
@@ -298,11 +315,16 @@ const AdminBookingsPage = () => {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookings.length <= 0 ? <h1 className="text-5xl">no booking found</h1> : bookings.map((booking) => (
-              <BookingCard key={booking._id} booking={booking} />
-            ))}
-          </div>
+          {loading ? <Loading /> :
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bookings.length <= 0 ? <h1 className="text-5xl">no booking found</h1> : bookings.map((booking) => (
+                  <BookingCard key={booking._id} booking={booking} />
+                ))}
+              </div>
+            </>
+          }
+
         </div>
       </div>
       <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
@@ -433,7 +455,7 @@ const AdminBookingsPage = () => {
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleStatusUpdate}>Save</Button>
+                <Button onClick={handleStatusUpdate}> {saveLoading ? "Loading..." : "save"}</Button>
               </div>
             </>
           )}
@@ -458,6 +480,12 @@ const AdminBookingsPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <AlertModel
+        isOpen={alertOpen}
+        setisOpen={setAlertOpen}
+        alertContent={alertContent}
+        onclick={currentAlertFunction.current}
+      />
     </>
   );
 };

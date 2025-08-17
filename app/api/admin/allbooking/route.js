@@ -14,7 +14,7 @@ export const POST = handleRouteError(auth(async (req) => {
     if (body.unVerified) {
         query.$or = [
             { isImage: false },
-            { status: "Panding" }
+            { status: "pending" }
         ];
     } else {
         query.isImage = true;

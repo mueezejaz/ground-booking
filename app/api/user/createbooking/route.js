@@ -9,8 +9,8 @@ export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
     const body = await req.json();
 
-    if (!req.auth.user || req.auth.user.email !== body.contactEmail) {
-        throw new ApiError(403, `unauthorized user`);
+    if (!req.auth.user || !req.auth.user.email) {
+        throw new ApiError(403, `Forbidden`);
     }
     const requiredFields = [
         "startDateTime",
@@ -43,7 +43,7 @@ export const POST = handleRouteError(auth(async (req) => {
     });
 
     if (conflict) {
-        if (conflict.isImage) {
+        if (conflict.isImage && conflict.status !== "cancelled") {
             // Booking is verified – block new booking
             return NextResponse.json({
                 success: false,
@@ -63,7 +63,7 @@ export const POST = handleRouteError(auth(async (req) => {
         const diffMinutes = Math.floor(diffMs / 60000);
         const minutesLeft = Math.max(20 - diffMinutes, 0);
 
-        if (minutesLeft > 0) {
+        if (minutesLeft > 0 && conflict.status !== "cancelled") {
             // Still within 20 min hold – block new booking
             return NextResponse.json({
                 success: false,
@@ -77,7 +77,9 @@ export const POST = handleRouteError(auth(async (req) => {
         }
 
         // Hold expired – delete the old booking
-        await Booking.findByIdAndDelete(conflict._id);
+        if (conflict.status === "pending" && !conflict.isImage) {
+            await Booking.findByIdAndDelete(conflict._id);
+        }
     }
 
     try {
@@ -89,10 +91,9 @@ export const POST = handleRouteError(auth(async (req) => {
             contactName: body.contactName,
             contactPhone: body.contactPhone,
             price: body.numberOfHours * 100,
-            //to do fix this 
-            status:"Panding",
+            status: "pending",
             isImage: false,
-            contactEmail: body.contactEmail,
+            contactEmail: req.auth.user.email,
             specialRequests: body.specialRequests || "",
         });
 
