@@ -33,6 +33,21 @@ import {
 } from "@/components/ui/dialog";
 
 // Dummy data for bookings
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 const AdminBookingsPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -43,6 +58,7 @@ const AdminBookingsPage = () => {
   const isHist = useRef(false);
   const router = useRouter();
   const [fullscreenImage, setFullscreenImage] = useState(null);
+  const debouncedSearchTerm = useDebounce(searchQuery, 1000);
   if (status === "unauthenticated") {
     router.push("/user");
   }
@@ -73,7 +89,41 @@ const AdminBookingsPage = () => {
     if (status === "authenticated") {
       getBookings();
     }
-  }, [status, showUnverified]);
+  }, [status, showUnverified, debouncedSearchTerm]);
+
+
+  useEffect(() => {
+    async function SearchBooking() {
+      if (debouncedSearchTerm) {
+        console.log('Searching for:', searchQuery);
+        try {
+          const res = await fetch("/api/admin/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              search: searchQuery,
+              unVerified: showUnverified,
+            })
+          });
+          const data = await res.json();
+          console.log(data);
+          if (data.success) {
+            setBookings(data.bookings);
+          } else {
+            alert("error success false");
+            //handle error and unauth
+          }
+        } catch (error) {
+          console.log(error)
+          alert("something wend wrog")
+        }
+      }
+    }
+    SearchBooking();
+  }, [debouncedSearchTerm]);
+
+
+
   const handleStatusUpdate = async () => {
     if (!selectedBooking) { return };
     try {
@@ -101,7 +151,9 @@ const AdminBookingsPage = () => {
       alert("something wend wrog")
     }
   };
-
+  async function handleSearch(e) {
+    setSearchQuery(e.target.value);
+  }
   // useEffect(() => {
   //   let filtered = bookings;
   //   if (showUnverified) {
@@ -236,18 +288,18 @@ const AdminBookingsPage = () => {
                 placeholder="Search by email, phone, or ID"
                 className="p-2 border rounded w-full md:w-auto"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearch}
               />
               <Button className="w-full md:w-auto" onClick={() => setShowUnverified(!showUnverified)}>
                 {showUnverified ? "Show All" : "Show Unverified"}
               </Button>
               <Button className="w-full md:w-auto" >
-                create new booking
+                create new booking +
               </Button>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bookings.map((booking) => (
+            {bookings.length <= 0 ? <h1 className="text-5xl">no booking found</h1> : bookings.map((booking) => (
               <BookingCard key={booking._id} booking={booking} />
             ))}
           </div>
