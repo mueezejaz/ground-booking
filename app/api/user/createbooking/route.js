@@ -33,16 +33,22 @@ export const POST = handleRouteError(auth(async (req) => {
         throw new ApiError(400, "Invalid start or end datetime.");
     }
 
-    // Check for overlapping bookings
     const conflict = await Booking.findOne({
-        $or: [
-            { startDateTime: { $lt: end }, endDateTime: { $gt: start } }
-        ],
+        $and: [
+            {
+                $or: [
+                    { startDateTime: { $lt: end }, endDateTime: { $gt: start } }
+                ]
+            },
+            { status: { $ne: 'cancelled' } }
+        ]
     });
 
     if (conflict) {
-        if (conflict.isImage && conflict.status !== "cancelled") {
+        console.log("found")
+        if (conflict.isImage && conflict.status === "confirmed") {
             // Booking is verified – block new booking
+            console.log("found2")
             return NextResponse.json({
                 success: false,
                 isBooked: true,
@@ -54,15 +60,13 @@ export const POST = handleRouteError(auth(async (req) => {
             });
         }
 
-        // Booking is unverified – check how much time is left
         const createdAt = new Date(conflict.createdAt);
         const now = new Date();
         const diffMs = now.getTime() - createdAt.getTime();
         const diffMinutes = Math.floor(diffMs / 60000);
         const minutesLeft = Math.max(20 - diffMinutes, 0);
-
-        if (minutesLeft > 0 && conflict.status !== "cancelled") {
-            // Still within 20 min hold – block new booking
+        console.log(minutesLeft)
+        if (minutesLeft > 0 && conflict.status === "pending") {
             return NextResponse.json({
                 success: false,
                 isBooked: true,
