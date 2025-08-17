@@ -46,7 +46,7 @@ export const POST = handleRouteError(auth(async (req) => {
 
     if (conflict) {
         console.log("found")
-        if (conflict.isImage && conflict.status === "confirmed") {
+        if (conflict.isImage || conflict.status === "confirmed") {
             // Booking is verified – block new booking
             console.log("found2")
             return NextResponse.json({
