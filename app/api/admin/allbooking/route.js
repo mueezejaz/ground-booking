@@ -3,6 +3,7 @@ import dbConnect from "@/app/lib/mongoose.js";
 import Booking from "@/app/models/Booking";
 import handleRouteError from "@/app/utils/HandleApiError";
 import { auth } from "@/app/auth";
+import ApiError from "@/app/utils/ApiError";
 
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
