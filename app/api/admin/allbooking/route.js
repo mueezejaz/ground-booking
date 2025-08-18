@@ -6,11 +6,12 @@ import { auth } from "@/app/auth";
 
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
-    const query = {};
-    const body = await req.json();
-    if (!req.auth.user.email && req.auth.user.email !== process.env.ADMIN_EMAIL) {
+    if (!req.auth.user.email || req.auth.user.email !== process.env.ADMIN_EMAIL) {
         throw new ApiError(403, "Forbidden");
     }
+    console.log(req.auth.user.email !== process.env.ADMIN_EMAIL)
+    const query = {};
+    const body = await req.json();
     if (body.unVerified) {
         query.$or = [
             { isImage: false },

@@ -243,6 +243,7 @@ export default function BookingPage() {
 
   const handleSignOut = () => {
     signOut();
+    router.push("/")
   }
   if (status === "unauthenticated") {
     return <Loading />

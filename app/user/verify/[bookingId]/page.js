@@ -181,7 +181,7 @@ export default function PaymentVerificationPage() {
                     <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
                         bookings
                     </Button>
-                    <Button onClick={() => { signOut() }} className="bg-accent hover:bg-red-600 text-white">
+                    <Button onClick={() => { signOut(); router.push("/") }} className="bg-accent hover:bg-red-600 text-white">
                         Sign Out
                     </Button>
                 </div>

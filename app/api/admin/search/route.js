@@ -8,7 +8,7 @@ import mongoose from "mongoose"; // Import mongoose to use Types.ObjectId
 export const POST = handleRouteError(auth(async (req) => {
     // Connect to the database
     await dbConnect();
-    if (!req.auth.user.email && req.auth.user.email !== process.env.ADMIN_EMAIL) {
+    if (!req.auth.user.email || req.auth.user.email !== process.env.ADMIN_EMAIL) {
         throw new ApiError(403, "Forbidden");
     }
     const body = await req.json();
