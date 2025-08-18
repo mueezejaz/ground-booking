@@ -67,6 +67,7 @@ export const POST = handleRouteError(auth(async (req) => {
         const minutesLeft = Math.max(20 - diffMinutes, 0);
         console.log(minutesLeft)
         if (minutesLeft > 0 && conflict.status === "pending") {
+            //show panding time to user 
             return NextResponse.json({
                 success: false,
                 isBooked: true,
