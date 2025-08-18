@@ -4,6 +4,7 @@ import Booking from "@/app/models/Booking";
 import handleRouteError from "@/app/utils/HandleApiError";
 import { auth } from "@/app/auth";
 import mongoose from "mongoose"; // Import mongoose to use Types.ObjectId
+import ApiError from "@/app/utils/ApiError";
 
 export const POST = handleRouteError(auth(async (req) => {
     // Connect to the database
