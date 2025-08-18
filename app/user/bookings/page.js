@@ -151,10 +151,6 @@ const UserBookings = () => {
           <CardTitle className="text-lg text-primary break-all">
             {booking.contactEmail}
           </CardTitle>
-          <Badge variant={getStatusVariant(booking.status)} className="capitalize">
-            {getStatusIcon(booking.status)}
-            {booking.status}
-          </Badge>
         </div>
         <CardDescription>{formatDate(booking.createdAt)}</CardDescription>
       </CardHeader>
@@ -213,7 +209,7 @@ const UserBookings = () => {
           </Badge>
           {booking.status === "pending" && (
             <span className="text-sm text-muted-foreground flex-1 min-w-0">
-             Booking is currently in pending, Wait for the admin to see your payment and confirm it.
+              Booking is currently in pending, Wait for the admin to see your payment and confirm it.
             </span>
           )}
         </div>
@@ -225,10 +221,10 @@ const UserBookings = () => {
   return (
     <>
 
-      <nav className="w-full px-6 py-4 bg-primary text-white flex justify-between items-center">
-        <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
+      <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
+        {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
           🏏 Ground Booker
-        </Link>
+        </Link> */}
 
         <div className="flex flex-row space-x-2">
           <Button onClick={() => { router.push("/user") }} className="bg-secondary hover:bg-red-600 text-white">

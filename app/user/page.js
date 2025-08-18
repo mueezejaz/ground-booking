@@ -251,19 +251,19 @@ export default function BookingPage() {
   return (
     <div className="relative h-screen w-full overflow-auto bg-white text-primary">
       {/* Navbar */}
-      <nav className="w-full px-6 py-4 bg-primary text-white flex justify-between items-center">
-        <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
+      <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
+        {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
           🏏 Ground Booker
-        </Link>
+        </Link> */}
 
-        <div className="flex flex-row space-x-2">
+        <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
           {admin &&
             <Button onClick={() => { router.push("/admin") }} className="bg-secondary hover:bg-red-600 text-white">
               Admin
             </Button>
           }
           <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
-            bookings
+            Bookings
           </Button>
           <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
             Sign Out

@@ -16,6 +16,7 @@ export default function PaymentVerificationPage() {
     const [image, setImage] = useState(null)
     const [previewUrl, setPreviewUrl] = useState(null)
     const { data: session, status } = useSession()
+    const [loading, setLoading] = useState(false);
     const [data, setData] = useState(0);
     const inputRef = useRef(null);
     const [alertOpen, setAlertOpen] = useState(false)
@@ -134,6 +135,9 @@ export default function PaymentVerificationPage() {
     }
 
     const handleSubmit = async () => {
+        if (loading) {
+            return
+        }
         if (data.isImage) {
             alert("image already uploaded")
             return
@@ -147,13 +151,14 @@ export default function PaymentVerificationPage() {
         formData.append("image", image);
         formData.append("bookingId", bookingId);
         try {
+            setLoading(true);
             const res = await fetch("/api/user/uploadimage", {
                 method: "POST",
                 body: formData,
             });
 
             const data = await res.json();
-            console.log(data);
+            setLoading(false);
             if (data.success) {
                 setAlertContent({ title: "success", description: data.message });
                 setAlertOpen(true);
@@ -172,10 +177,10 @@ export default function PaymentVerificationPage() {
 
     return (
         <>
-            <nav className="w-full px-6 py-4 bg-primary text-white flex justify-between items-center">
-                <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
+            <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
+                {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
                     🏏 Ground Booker
-                </Link>
+                </Link> */}
 
                 <div className="flex flex-row space-x-2">
                     <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
@@ -249,7 +254,7 @@ export default function PaymentVerificationPage() {
                                 className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
                             >
                                 {
-                                    data.isImage ? "Image is already uploaded" : "submit for verification"
+                                    data.isImage ? "Image is already uploaded" : loading ? "loading..." : "click here to submit" 
                                 }
                             </Button>
                             {
