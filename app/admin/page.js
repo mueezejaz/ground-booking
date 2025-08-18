@@ -227,11 +227,9 @@ const AdminBookingsPage = () => {
     <Card className="mb-4">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-primary">{booking._id}</CardTitle>
-          <Badge variant={getStatusVariant(booking.status)} className="capitalize">
-            {getStatusIcon(booking.status)}
-            {booking.status}
-          </Badge>
+          <CardTitle className="text-lg text-primary truncate">
+            {booking.contactEmail}
+          </CardTitle>
         </div>
         <CardDescription>{formatDate(booking.createdAt)}</CardDescription>
       </CardHeader>
@@ -278,6 +276,12 @@ const AdminBookingsPage = () => {
             View
           </Button>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={getStatusVariant(booking.status)} className="capitalize flex-shrink-0">
+            {getStatusIcon(booking.status)}
+            {booking.status}
+          </Badge>
+        </div>
       </CardContent>
     </Card>
   );
@@ -310,7 +314,9 @@ const AdminBookingsPage = () => {
               <Button className="w-full md:w-auto" onClick={() => setShowUnverified(!showUnverified)}>
                 {showUnverified ? "Show All" : "Show Unverified"}
               </Button>
-              <Button className="w-full md:w-auto" >
+              <Button className="w-full md:w-auto"
+                onClick={() => router.push("/user")}
+              >
                 create new booking +
               </Button>
             </div>

@@ -148,7 +148,9 @@ const UserBookings = () => {
     <Card className="mb-4">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-primary">{booking._id}</CardTitle>
+          <CardTitle className="text-lg text-primary break-all">
+            {booking.contactEmail}
+          </CardTitle>
           <Badge variant={getStatusVariant(booking.status)} className="capitalize">
             {getStatusIcon(booking.status)}
             {booking.status}
@@ -204,6 +206,17 @@ const UserBookings = () => {
             View
           </Button>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={getStatusVariant(booking.status)} className="capitalize flex-shrink-0">
+            {getStatusIcon(booking.status)}
+            {booking.status}
+          </Badge>
+          {booking.status === "pending" && (
+            <span className="text-sm text-muted-foreground flex-1 min-w-0">
+             Booking is currently in pending, Wait for the admin to see your payment and confirm it.
+            </span>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -219,7 +232,7 @@ const UserBookings = () => {
 
         <div className="flex flex-row space-x-2">
           <Button onClick={() => { router.push("/user") }} className="bg-secondary hover:bg-red-600 text-white">
-          create booking
+            create booking
           </Button>
           <Button onClick={() => { signOut }} className="bg-accent hover:bg-red-600 text-white">
             Sign Out

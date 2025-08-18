@@ -8,7 +8,9 @@ import mongoose from "mongoose"; // Import mongoose to use Types.ObjectId
 export const POST = handleRouteError(auth(async (req) => {
     // Connect to the database
     await dbConnect();
-
+    if (!req.auth.user.email && req.auth.user.email !== process.env.ADMIN_EMAIL) {
+        throw new ApiError(403, "Forbidden");
+    }
     const body = await req.json();
 
     const conditions = [];
@@ -35,7 +37,6 @@ export const POST = handleRouteError(auth(async (req) => {
             orConditions.push({ _id: new mongoose.Types.ObjectId(body.search) });
         }
 
-        // Apply the $or query to search across multiple fields
         conditions.push({ $or: orConditions });
     }
 

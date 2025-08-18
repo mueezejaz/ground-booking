@@ -11,12 +11,15 @@ export const GET = handleRouteError(auth(async (req) => {
     if (!req.auth.user && !req.auth.user.email) {
         throw new ApiError(403, "Forbidden");
     }
-
+    let isAdmin = false;
+    if (req.auth.user.email === process.env.ADMIN_EMAIL) {
+        isAdmin = true;
+    }
     const booking = await Booking.findOne({ contactEmail: req.auth.user.email, isImage: false })
         .sort({ createdAt: -1 });
 
     if (!booking) {
-        return NextResponse.json({ success: true, isFound: false }, { status: 404 });
+        return NextResponse.json({ success: true, isAdmin, isFound: false }, { status: 404 });
     }
 
     const createdAt = new Date(booking.createdAt);
@@ -31,6 +34,7 @@ export const GET = handleRouteError(auth(async (req) => {
             success: true,
             isFound: true,
             expired: true,
+            isAdmin,
             message: "Booking has been deleted because it was older than 20 minutes pls creat new booking."
         }, { status: 410 }); // 410 Gone
     }

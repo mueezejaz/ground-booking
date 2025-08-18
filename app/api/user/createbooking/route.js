@@ -7,8 +7,12 @@ import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
+    let isAdmin = false;
     if (!req.auth.user && !req.auth.user.email) {
         throw new ApiError(403, "Forbidden");
+    }
+    if (req.auth.user.email === process.env.ADMIN_EMAIL) {
+        isAdmin = true;
     }
     const body = await req.json();
     const requiredFields = [
@@ -94,16 +98,17 @@ export const POST = handleRouteError(auth(async (req) => {
             contactName: body.contactName,
             contactPhone: body.contactPhone,
             price: body.numberOfHours * 100,
-            status: "pending",
-            isImage: false,
+            status: isAdmin ? "confirmed" : "pending",
+            isImage: isAdmin ? true : false,
             contactEmail: req.auth.user.email,
-            specialRequests: body.specialRequests || "",
+            specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
         });
 
         const savedBooking = await newBooking.save();
 
         return NextResponse.json({
             message: "Booking successful!",
+            isAdmin,
             data: savedBooking,
         }, { status: 201 });
     } catch (error) {

@@ -8,9 +8,9 @@ export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
     const query = {};
     const body = await req.json();
-    // if (req.auth.user.email !== process.env.ADMIN_EMAIL) {
-    //     throw new ApiError(403, "Forbidden");
-    // }
+    if (!req.auth.user.email && req.auth.user.email !== process.env.ADMIN_EMAIL) {
+        throw new ApiError(403, "Forbidden");
+    }
     if (body.unVerified) {
         query.$or = [
             { isImage: false },

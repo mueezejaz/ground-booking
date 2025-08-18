@@ -20,7 +20,9 @@ export default function BookingPage() {
   const [contactPhone, setContactPhone] = useState("")
   const [contactEmail, setContactEmail] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
-  const [alertOpen, setAlertOpen] = useState(false)
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [admin, setAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [alertContent, setAlertContent] = useState({ title: "", description: "" })
   const hasChecked = useRef(false);
   const router = useRouter();
@@ -41,6 +43,11 @@ export default function BookingPage() {
           // Optional: handle the response
           const data = await response.json();
           if (data.success) {
+            console.log(data);
+            if (data.isAdmin) {
+              setAdmin(true);
+              return;
+            }
             if (!data.isFound) return
             if (data.expired) {
               setAlertContent({ title: "booking expired", description: data.message })
@@ -100,9 +107,17 @@ export default function BookingPage() {
     return { hour, minute }
   }
   const handleSubmit = async () => {
-    if (!endTimes) return
-
+    if (!endTimes && loading) return
     try {
+      if (!endTimes && !endTimes?.startDateTime && !endTimes?.endDateTime) {
+        setAlertContent({ title: "Data Error", description: "Pls fill all date fields" })
+        setAlertOpen(true)
+        currentAlertFunction.current = () => {
+          setAlertOpen(false);
+        }
+        return
+      }
+      setLoading(true);
       const response = await fetch("/api/user/createbooking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,10 +133,8 @@ export default function BookingPage() {
       })
 
       const data = await response.json()
+      setLoading(false);
       console.log(data);
-      if (data.success === false) {
-        console.log("false");
-      }
       if (data.success === false) {
         // Check if booking is already made
         currentAlertFunction.current = () => {
@@ -155,6 +168,17 @@ export default function BookingPage() {
           setAlertOpen(true)
         }
       } else {
+        if (data.isAdmin) {
+          setAlertContent({
+            title: "success",
+            description: "booking done successfully",
+          })
+          setAlertOpen(true)
+          currentAlertFunction.current = () => {
+            setAlertOpen(false)
+          }
+          return
+        }
         router.push(`/user/verify/${data.data._id}`)
       }
     } catch (err) {
@@ -164,6 +188,9 @@ export default function BookingPage() {
         description: "Could not complete your booking. Please try again later.",
       })
       setAlertOpen(true)
+      currentAlertFunction.current = () => {
+        setAlertOpen(false);
+      }
     }
   }
   // Format Date to "YYYY-MM-DD hh:mm AM/PM"
@@ -229,7 +256,12 @@ export default function BookingPage() {
         </Link>
 
         <div className="flex flex-row space-x-2">
-          <Button onClick={()=>{router.push("/user/bookings")}} className="bg-secondary hover:bg-red-600 text-white">
+          {admin &&
+            <Button onClick={() => { router.push("/admin") }} className="bg-secondary hover:bg-red-600 text-white">
+              Admin
+            </Button>
+          }
+          <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
             bookings
           </Button>
           <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
@@ -254,6 +286,7 @@ export default function BookingPage() {
               <Input
                 id="date"
                 type="date"
+                required
                 value={selectedDate}
                 onChange={(e) => {
                   setSelectedDate(e.target.value)
@@ -272,6 +305,7 @@ export default function BookingPage() {
               <select
                 id="startTime"
                 value={selectedStartTime}
+                required
                 onChange={(e) => setSelectedStartTime(e.target.value)}
                 className="w-full px-3 py-2 border border-primary rounded-md"
                 disabled={!selectedDate}
@@ -295,6 +329,7 @@ export default function BookingPage() {
                 id="hours"
                 type="number"
                 min="1"
+                required
                 max="24"
                 placeholder="Enter number of hours"
                 value={numberOfHours}
@@ -329,6 +364,7 @@ export default function BookingPage() {
               <Input
                 id="players"
                 type="number"
+                required
                 placeholder="e.g., 22"
                 value={playerCount}
                 onChange={(e) => setPlayerCount(e.target.value)}
@@ -345,6 +381,7 @@ export default function BookingPage() {
               <Input
                 id="name"
                 type="text"
+                required
                 placeholder="Your Name"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
@@ -356,7 +393,8 @@ export default function BookingPage() {
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+91 98765 43210"
+                required
+                placeholder="+0 98765 43210"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
               />
@@ -393,7 +431,9 @@ export default function BookingPage() {
                 className="bg-primary hover:bg-secondary text-white w-full"
                 onClick={handleSubmit}
               >
-                Submit Booking
+                {
+                  loading ? "loading..." : "Submit Booking"
+                }
               </Button>
             </div>
           </CardContent>
