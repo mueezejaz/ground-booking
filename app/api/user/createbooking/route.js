@@ -5,6 +5,7 @@ import Booking from "@/app/models/Booking";
 import handleRouteError from "@/app/utils/HandleApiError";
 import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
+import EmailSender from "@/app/utils/EmailSender";
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
     let isAdmin = false;
@@ -106,6 +107,41 @@ export const POST = handleRouteError(auth(async (req) => {
 
         const savedBooking = await newBooking.save();
 
+        const email = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8;">
+                    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); padding: 30px;">
+                    <h2 style="color: #FF9800;">⏳ Booking Created – Awaiting Payment Screenshot</h2>
+                    <p style="font-size: 16px;">A new booking has been created, but the user has <strong>not yet uploaded</strong> a payment screenshot. They have <strong>20 minutes</strong> remaining to complete the payment process.</p>
+
+                    <h3 style="margin-top: 30px; color: #333;">🧾 Booking Details:</h3>
+                    <ul style="line-height: 1.8; font-size: 15px; padding-left: 20px;">
+                        <li><strong>Contact Name:</strong> ${savedBooking.contactName}</li>
+                        <li><strong>Contact Phone:</strong> ${savedBooking.contactPhone}</li>
+                        <li><strong>Contact Email:</strong> ${savedBooking.contactEmail}</li>
+                        <li><strong>Player Count:</strong> ${savedBooking.playerCount}</li>
+                        <li><strong>Number of Hours:</strong> ${savedBooking.numberOfHours}</li>
+                        <li><strong>Total Price:</strong> ${savedBooking.price}</li>
+                        <li><strong>Status:</strong> ${savedBooking.status}</li>
+                        <li><strong>Start Time:</strong> ${new Date(savedBooking.startDateTime).toLocaleString()}</li>
+                        <li><strong>End Time:</strong> ${new Date(savedBooking.endDateTime).toLocaleString()}</li>
+                        ${savedBooking.specialRequests ? `<li><strong>Special Requests:</strong> ${savedBooking.specialRequests}</li>` : ""}
+                    </ul>
+
+                    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-left: 5px solid #ff9800;">
+                        <p style="margin: 0; font-size: 15px; color: #856404;">
+                        ⚠️ The user has <strong>20 minutes</strong> to upload their payment screenshot. Please monitor this booking in case the time runs out.
+                        </p>
+                    </div>
+
+                    <hr style="margin-top: 40px;"/>
+                    <p style="font-size: 13px; color: #999;">This is an automated email from the booking system.</p>
+                    </div>
+                </div>
+                `;
+
+        if (!isAdmin) {
+            await EmailSender(process.env.ADMIN_EMAIL, "New Payment Screenshot Uploaded", email)
+        }
         return NextResponse.json({
             message: "Booking successful!",
             isAdmin,

@@ -179,8 +179,8 @@ export default function PaymentVerificationPage() {
         <>
             <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
                 {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
-                    🏏 Ground Booker
-                </Link> */}
+            🏏 Ground Booker
+        </Link> */}
 
                 <div className="flex flex-row space-x-2">
                     <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
@@ -191,11 +191,13 @@ export default function PaymentVerificationPage() {
                     </Button>
                 </div>
             </nav>
+
             <div className="min-h-screen w-full bg-white flex justify-center items-center px-4 py-10">
                 <Card className="w-full max-w-xl bg-white text-primary shadow-lg">
                     <CardHeader>
                         <CardTitle className="text-2xl font-bold text-primary">Payment Verification</CardTitle>
                     </CardHeader>
+
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
                             <h2 className="text-lg font-semibold">
@@ -212,6 +214,15 @@ export default function PaymentVerificationPage() {
                             <p className="bg-secondary text-dark px-4 py-2 rounded-md font-bold">
                                 {data.price}
                             </p>
+                        </div>
+
+                        {/* ✅ Added Payment Details Here */}
+                        <div className="space-y-2 border p-4 rounded-md bg-gray-100">
+                            <h3 className="font-semibold text-primary text-lg">Bank Transfer Details</h3>
+                            <p><strong>Account Title:</strong> ABDUR REHMAN</p>
+                            <p><strong>Bank Name:</strong> Meezan Bank - MEEZAN DIGITAL CENTRE</p>
+                            <p><strong>Account Number:</strong> 00300112550593</p>
+                            <p><strong>IBAN:</strong> PK74MEZN0000300112550593</p>
                         </div>
 
                         <div className="space-y-2">
@@ -244,21 +255,17 @@ export default function PaymentVerificationPage() {
                                 }}
                                 className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
                             >
-                                {
-                                    data.isImage ? "Image is already uploaded" : "click here to select image"
-                                }
+                                {data.isImage ? "Image is already uploaded" : "Click here to select image"}
                             </Button>
 
                             <Button
                                 onClick={handleSubmit}
                                 className="bg-secondary text-dark hover:bg-accent hover:text-white w-full"
                             >
-                                {
-                                    data.isImage ? "Image is already uploaded" : loading ? "loading..." : "click here to submit" 
-                                }
+                                {data.isImage ? "Image is already uploaded" : loading ? "Loading..." : "Click here to submit"}
                             </Button>
-                            {
-                                !data.isImage &&
+
+                            {!data.isImage && (
                                 <Button
                                     variant="destructive"
                                     className="w-full"
@@ -266,10 +273,11 @@ export default function PaymentVerificationPage() {
                                 >
                                     Cancel Booking
                                 </Button>
-                            }
+                            )}
                         </div>
                     </CardContent>
                 </Card>
+
                 <AlertModel
                     isOpen={alertOpen}
                     setisOpen={setAlertOpen}
@@ -278,6 +286,7 @@ export default function PaymentVerificationPage() {
                 />
             </div>
         </>
+
     )
 }
 

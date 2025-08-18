@@ -168,6 +168,7 @@ const AdminBookingsPage = () => {
         });
         setSelectedBooking(false);
       } else {
+        setSelectedBooking(null);
         setAlertContent({
           title: "Error",
           description: data.message || "Something went wrong",

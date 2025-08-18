@@ -6,6 +6,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import handleRouteError from "@/app/utils/HandleApiError";
 import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
+import EmailSender from "@/app/utils/EmailSender";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -71,8 +72,37 @@ export let POST = auth(handleRouteError(async (req) => {
     };
     booking.isImage = true;
 
-    await booking.save();
+    let newBooking = await booking.save();
+    const email = `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #4CAF50;">📸 Payment Screenshot Uploaded</h2>
+                <p>A user has uploaded a payment screenshot. Please review the booking and verify the payment.</p>
 
+                <h3>🧾 Booking Details:</h3>
+                <ul style="line-height: 1.8;">
+                    <li><strong>Contact Name:</strong> ${booking.contactName}</li>
+                    <li><strong>Contact Phone:</strong> ${booking.contactPhone}</li>
+                    <li><strong>Contact Email:</strong> ${booking.contactEmail}</li>
+                    <li><strong>Player Count:</strong> ${booking.playerCount}</li>
+                    <li><strong>Number of Hours:</strong> ${booking.numberOfHours}</li>
+                    <li><strong>Total Price:</strong> ${booking.price}</li>
+                    <li><strong>Status:</strong> ${booking.status}</li>
+                    <li><strong>Start Time:</strong> ${new Date(booking.startDateTime).toLocaleString()}</li>
+                    <li><strong>End Time:</strong> ${new Date(booking.endDateTime).toLocaleString()}</li>
+                    ${booking.specialRequests ? `<li><strong>Special Requests:</strong> ${booking.specialRequests}</li>` : ""}
+                </ul>
+
+                ${booking.imageData?.url
+            ? `<h3>📷 Screenshot Preview:</h3>
+                           <img src="${booking.imageData.url}" alt="Payment Screenshot" style="max-width: 100%; border: 1px solid #ccc;" />`
+            : ""
+        }
+
+                <hr style="margin-top: 30px;"/>
+                <p style="font-size: 12px; color: #888;">This is an automated notification from the booking system.</p>
+            </div>
+        `
+    await EmailSender(process.env.ADMIN_EMAIL, "New Payment Screenshot Uploaded", email)
     return NextResponse.json({
         success: true,
         message: "Image uploaded and attached to booking successfully wait for admin to verify payment you can view you status in booking page.",

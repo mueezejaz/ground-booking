@@ -27,7 +27,6 @@ export const GET = handleRouteError(auth(async (req) => {
     const diffMs = now.getTime() - createdAt.getTime();
     const diffMinutes = Math.floor(diffMs / 60000);
     const minutesLeft = Math.max(20 - diffMinutes, 0);
-
     if (minutesLeft <= 0) {
         await Booking.deleteOne({ _id: booking._id });
         return NextResponse.json({
