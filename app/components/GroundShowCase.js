@@ -26,9 +26,13 @@ const GroundShowcase = () => {
   return (
     <section className="py-12 bg-primary text-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8 text-secondary">
-          Grounds Showcase
-        </h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-secondary inline-block">
+            Grounds Showcase
+          </h2>
+          <div className="mt-2 w-29 h-1 bg-secondary mx-auto rounded"></div>
+        </div>
+
 
         <div className="relative w-full h-[500px] rounded-lg shadow-lg overflow-hidden">
           {/* Main Image with Fade Transition */}
@@ -37,9 +41,8 @@ const GroundShowcase = () => {
               key={pic.id}
               src={pic.src}
               alt={pic.alt}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
-                index === currentImageIndex ? "opacity-100" : "opacity-0"
-              }`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? "opacity-100" : "opacity-0"
+                }`}
             />
           ))}
 
@@ -63,11 +66,10 @@ const GroundShowcase = () => {
           {groundPictures.map((pic, index) => (
             <div
               key={pic.id}
-              className={`w-20 h-20 overflow-hidden rounded-md cursor-pointer transition-all duration-300 ${
-                index === currentImageIndex
-                  ? "ring-4 ring-secondary"
-                  : "opacity-70 hover:opacity-100"
-              }`}
+              className={`w-20 h-20 overflow-hidden rounded-md cursor-pointer transition-all duration-300 ${index === currentImageIndex
+                ? "ring-4 ring-secondary"
+                : "opacity-70 hover:opacity-100"
+                }`}
               onClick={() => setCurrentImageIndex(index)}
             >
               <img
