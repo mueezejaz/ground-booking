@@ -6,6 +6,12 @@ import handleRouteError from "@/app/utils/HandleApiError";
 import ApiError from "@/app/utils/ApiError";
 import { auth } from "@/app/auth";
 import EmailSender from "@/app/utils/EmailSender";
+
+function isValidPakPhone(phone) {
+    return /^03\d{9}$/.test(phone);
+}
+
+
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
     let isAdmin = false;
@@ -29,6 +35,9 @@ export const POST = handleRouteError(auth(async (req) => {
         if (!body[field]) {
             throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
         }
+    }
+    if (isValidPakPhone(body.contactPhone)) {
+        throw new ApiError(400, `phone number is not valid`);
     }
 
     const start = new Date(body.startDateTime);

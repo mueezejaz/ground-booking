@@ -399,7 +399,7 @@ export default function BookingPage() {
                 id="phone"
                 type="tel"
                 required
-                placeholder="+0 98765 43210"
+                placeholder="03365699561"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
               />
