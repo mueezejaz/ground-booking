@@ -9,7 +9,7 @@ export default function Navbar() {
       <img
         src="./nav.webp"
         alt="Logo"
-        className="h-12 sm:h-13 md:h-15 object-contain"
+        className="h-16 sm:h-19 md:h-25 object-contain"
       />
 
       <div className="flex items-center space-x-4">
