@@ -8,6 +8,7 @@ import { auth } from "@/app/auth";
 
 export const GET = handleRouteError(auth(async (req) => {
     await dbConnect();
+    console.log("enter")
     if (!req.auth.user && !req.auth.user.email) {
         throw new ApiError(403, "Forbidden");
     }
@@ -21,7 +22,7 @@ export const GET = handleRouteError(auth(async (req) => {
     if (!booking) {
         return NextResponse.json({ success: true, isAdmin, isFound: false }, { status: 404 });
     }
-
+    console.log("this is booking",booking);
     const createdAt = new Date(booking.createdAt);
     const now = new Date();
     const diffMs = now.getTime() - createdAt.getTime();

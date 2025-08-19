@@ -4,10 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --color-primary: #0b1e3f;
+  /* --color-primary: #0b1e3f;
   --color-secondary: #f6c244;
   --color-accent: #d72638;
-  --color-dark: #1a1a1a;
+  --color-dark: #1a1a1a; */
 
   --font-sans: 'Geist', sans-serif;
   --font-mono: 'Geist Mono', monospace;
@@ -46,13 +46,13 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  /* :root {
 
     --color-primary: #102040;
     --color-secondary: #e8b23c;
     --color-accent: #ff3b3b;
     --color-dark: #0a0a0a;
-  }
+  } */
 }
 
 @theme inline {
@@ -127,8 +127,8 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 @theme{
-    --color-primary: #102040;
-    --color-secondary: #e8b23c;
+    --color-primary: #00183c;
+    --color-secondary: #f1ab27;
     --color-accent: #ff3b3b;
     --color-dark: #0a0a0a;
 }

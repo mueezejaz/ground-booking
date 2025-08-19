@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/dialog";
 import AlertModel from "@/app/components/alertModel";
 
-
 const UserBookings = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [bookings, setBookins] = useState([]);
@@ -51,7 +50,10 @@ const UserBookings = () => {
     router.push("/user");
   }
 
-
+  function handleSignOut() {
+    signOut({ callbackUrl: '/' });
+    router.push("/")
+  }
   useEffect(() => {
     async function getBookings() {
       try {
@@ -221,16 +223,20 @@ const UserBookings = () => {
   return (
     <>
 
-      <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
-        {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
-          🏏 Ground Booker
-        </Link> */}
+      <nav className="w-full px-6 py-4 bg-primary text-white flex  justify-between items-center">
+        <Link href="/" passHref>
+          <img
+            src="/nav.webp"
+            alt="Logo"
+            className="h-12 sm:h-13 md:h-15 object-contain"
+          />
+        </Link>
 
-        <div className="flex flex-row space-x-2">
+        <div className="flex  space-y-2 gap-2 ">
           <Button onClick={() => { router.push("/user") }} className="bg-secondary hover:bg-red-600 text-white">
             create booking
           </Button>
-          <Button onClick={() => { signOut }} className="bg-accent hover:bg-red-600 text-white">
+          <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
             Sign Out
           </Button>
         </div>

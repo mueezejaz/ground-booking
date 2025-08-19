@@ -8,7 +8,6 @@ import { auth } from "@/app/auth";
 
 export const POST = handleRouteError(auth(async (req) => {
     await dbConnect();
-
     if (!req.auth.user && !req.auth.user.email) {
         throw new ApiError(403, "Forbidden");
     }

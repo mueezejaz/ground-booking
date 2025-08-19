@@ -28,6 +28,10 @@ export default function PaymentVerificationPage() {
     if (status === "unauthenticated") {
         router.push("/user");
     }
+    function handleSignOut() {
+        signOut({ callbackUrl: '/' });
+        router.push("/");
+    }
     useEffect(() => {
         const verifyBooking = async () => {
             if (status === "authenticated" && !isHit.current) {
@@ -177,16 +181,20 @@ export default function PaymentVerificationPage() {
 
     return (
         <>
-            <nav className="w-full px-6 py-4 bg-primary text-white flex flex-row-reverse justify-between items-center">
-                {/* <Link href="/" className="text-lg font-bold tracking-tight hover:underline">
-            🏏 Ground Booker
-        </Link> */}
+            <div className="flex  space-y-2 gap-2 ">
+                <Link href="/" passHref>
+                    <img
+                        src="/nav.webp"
+                        alt="Logo"
+                        className="h-12 sm:h-13 md:h-15 object-contain"
+                    />
+                </Link>
 
-                <div className="flex flex-row space-x-2">
+                <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
                     <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
-                        bookings
+                        Bookings
                     </Button>
-                    <Button onClick={() => { signOut(); router.push("/") }} className="bg-accent hover:bg-red-600 text-white">
+                    <Button onClick={handleSignOut} className="bg-accent hover:bg-red-600 text-white">
                         Sign Out
                     </Button>
                 </div>
