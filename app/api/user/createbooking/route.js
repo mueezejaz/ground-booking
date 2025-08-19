@@ -36,7 +36,8 @@ export const POST = handleRouteError(auth(async (req) => {
             throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
         }
     }
-    if (isValidPakPhone(body.contactPhone)) {
+
+    if (!isValidPakPhone(body.contactPhone)) {
         throw new ApiError(400, `phone number is not valid`);
     }
 
