@@ -122,8 +122,9 @@ export const POST = handleRouteError(auth(async (req) => {
                         <li><strong>Number of Hours:</strong> ${savedBooking.numberOfHours}</li>
                         <li><strong>Total Price:</strong> ${savedBooking.price}</li>
                         <li><strong>Status:</strong> ${savedBooking.status}</li>
-                        <li><strong>Start Time:</strong> ${new Date(savedBooking.startDateTime).toLocaleString()}</li>
-                        <li><strong>End Time:</strong> ${new Date(savedBooking.endDateTime).toLocaleString()}</li>
+                        <li><strong>Start Time:</strong> ${new Date(savedBooking.startDateTime).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</li>
+                        <li><strong>End Time:</strong> ${new Date(savedBooking.endDateTime).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</li>
+
                         ${savedBooking.specialRequests ? `<li><strong>Special Requests:</strong> ${savedBooking.specialRequests}</li>` : ""}
                     </ul>
 

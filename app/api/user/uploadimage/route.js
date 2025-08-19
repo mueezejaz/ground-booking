@@ -87,8 +87,9 @@ export let POST = auth(handleRouteError(async (req) => {
                     <li><strong>Number of Hours:</strong> ${booking.numberOfHours}</li>
                     <li><strong>Total Price:</strong> ${booking.price}</li>
                     <li><strong>Status:</strong> ${booking.status}</li>
-                    <li><strong>Start Time:</strong> ${new Date(booking.startDateTime).toLocaleString()}</li>
-                    <li><strong>End Time:</strong> ${new Date(booking.endDateTime).toLocaleString()}</li>
+                    <li><strong>Start Time:</strong> ${new Date(booking.startDateTime).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</li>
+                    <li><strong>End Time:</strong> ${new Date(booking.endDateTime).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</li>
+
                     ${booking.specialRequests ? `<li><strong>Special Requests:</strong> ${booking.specialRequests}</li>` : ""}
                 </ul>
 
