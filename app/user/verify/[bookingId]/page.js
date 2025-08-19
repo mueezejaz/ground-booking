@@ -181,7 +181,7 @@ export default function PaymentVerificationPage() {
 
     return (
         <>
-            <nva className="w-full px-6 py-4 bg-primary text-white flex  justify-between items-center">
+            <nav className="w-full px-6 py-4 bg-primary text-white flex  justify-between items-center">
                 <Link href="/" passHref>
                     <img
                         src="/nav.webp"
@@ -198,7 +198,7 @@ export default function PaymentVerificationPage() {
                         Sign Out
                     </Button>
                 </div>
-            </nva>
+            </nav>
 
             <div className="min-h-screen w-full bg-white flex justify-center items-center px-4 py-10">
                 <Card className="w-full max-w-xl bg-white text-primary shadow-lg">
