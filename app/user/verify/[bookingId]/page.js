@@ -181,7 +181,7 @@ export default function PaymentVerificationPage() {
 
     return (
         <>
-            <div className="flex  space-y-2 gap-2 ">
+            <nva className="w-full px-6 py-4 bg-primary text-white flex  justify-between items-center">
                 <Link href="/" passHref>
                     <img
                         src="/nav.webp"
@@ -190,7 +190,7 @@ export default function PaymentVerificationPage() {
                     />
                 </Link>
 
-                <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+                <div className="flex  space-y-2 gap-2 ">
                     <Button onClick={() => { router.push("/user/bookings") }} className="bg-secondary hover:bg-red-600 text-white">
                         Bookings
                     </Button>
@@ -198,7 +198,7 @@ export default function PaymentVerificationPage() {
                         Sign Out
                     </Button>
                 </div>
-            </nav>
+            </nva>
 
             <div className="min-h-screen w-full bg-white flex justify-center items-center px-4 py-10">
                 <Card className="w-full max-w-xl bg-white text-primary shadow-lg">
