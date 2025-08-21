@@ -133,7 +133,6 @@ export default function BookingPage() {
       })
 
       const data = await response.json()
-      setLoading(false);
       console.log(data);
       if (data.success === false) {
         // Check if booking is already made
@@ -181,6 +180,7 @@ export default function BookingPage() {
         }
         router.push(`/user/verify/${data.data._id}`)
       }
+      setLoading(false);
     } catch (err) {
       console.error(err)
       setAlertContent({
@@ -240,7 +240,14 @@ export default function BookingPage() {
 
   const filteredStartTimes = getFilteredStartTimes()
   const endTimes = calculateEndDateTime()
-
+  const start = new Date(endTimes?.startDateTime);
+  const pkDay = new Date(start.toLocaleString("en-US", { timeZone: "Asia/Karachi" })).getDay();
+  let hourlyRate;
+  if (pkDay >= 1 && pkDay <= 4) {
+    hourlyRate = 2000;
+  } else {
+    hourlyRate = 2500;
+  }
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
     router.push("/")
@@ -328,7 +335,7 @@ export default function BookingPage() {
             {/* Duration (hours) */}
             <div className="space-y-2">
               <Label htmlFor="hours" className="text-sm font-semibold text-primary">
-                Duration (hours) price Rs 100 per hour
+                Duration (hours) price Rs 2000 per hour form monday to thursday and 2500
               </Label>
               <Input
                 id="hours"
@@ -355,7 +362,7 @@ export default function BookingPage() {
                   Booking from <strong>{formatDateTime(endTimes.startDateTime)}</strong> to <strong>{formatDateTime(endTimes.endDateTime)}</strong>
                 </p>
                 <p className="text-sm text-secondary">
-                  total amount {numberOfHours * 100};
+                  total amount {numberOfHours * hourlyRate}
                 </p>
               </>
             )}

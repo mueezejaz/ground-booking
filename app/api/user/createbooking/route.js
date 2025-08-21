@@ -101,6 +101,13 @@ export const POST = handleRouteError(auth(async (req) => {
     }
 
     try {
+        const pkDay = new Date(start.toLocaleString("en-US", { timeZone: "Asia/Karachi" })).getDay();
+        let hourlyRate;
+        if (pkDay >= 1 && pkDay <= 4) {
+            hourlyRate = 2000;
+        } else {
+            hourlyRate = 2500;
+        }
         const newBooking = new Booking({
             startDateTime: start,
             endDateTime: end,
@@ -108,7 +115,7 @@ export const POST = handleRouteError(auth(async (req) => {
             playerCount: body.playerCount,
             contactName: body.contactName,
             contactPhone: body.contactPhone,
-            price: body.numberOfHours * 100,
+            price: body.numberOfHours * hourlyRate,
             status: isAdmin ? "confirmed" : "pending",
             isImage: isAdmin ? true : false,
             contactEmail: req.auth.user.email,
