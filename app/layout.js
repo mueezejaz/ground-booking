@@ -31,7 +31,7 @@ export const metadata = {
     siteName: "The Ideal Arena",
     images: [
       {
-        url: "/seo.webp", 
+        url: "/seo.webp",
         width: 500,
         height: 500,
         alt: "The Ideal Arena - Cricket Ground Booking",
@@ -41,7 +41,7 @@ export const metadata = {
     type: "website",
   },
   icons: {
-    icon: "/favicon.png",
+    icon: "favicon.png",
   },
 };
 
@@ -49,6 +49,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <link rel="icon" href="/favicon.png" sizes="any" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
