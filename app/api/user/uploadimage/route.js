@@ -62,6 +62,17 @@ export let POST = auth(handleRouteError(async (req) => {
     if (!booking) {
         throw new ApiError(404, "Booking not found");
     }
+    const createdAt = new Date(booking.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - createdAt.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const minutesLeft = Math.max(20 - diffMinutes, 0);
+    if(minutesLeft <= 0){
+        await Booking.deleteOne({ _id: booking._id });
+        return NextResponse.json({
+            message: "Booking has been deleted because it was older than 20 minutes pls creat new booking."
+        }, { status: 410 }); // 410 Gone
+    }
     if (booking.isImage) {
         throw new ApiError(400, "image is already uploaded");
     }

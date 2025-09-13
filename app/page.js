@@ -1,17 +1,28 @@
-import Navbar from "./components/navebar"
-import Hero from "./components/hero"
+// import Navbar from "./components/navebar"
+// import Hero from "./components/hero"
 import GroundShowcase from "./components/GroundShowCase"
-import { Button } from "@/components/ui/button"
+// import { Button } from "@/components/ui/button"
 import FeedbackForm from "./components/FeedBackForm"
+import HeroSection from "./components/newHero.js"
+import GroundOverview from "./components/groundOverview.js"
 import ClientReviews from "./components/ClintReviews"
+import Recentbookings from "./components/recentBooking.js"
+import Footer from "./components/Footer.js"
+import Facilities from "./components/facilities.js"
+
 export default function Home() {
   return (
     <>
-      <Navbar />
-      <Hero />
-      <GroundShowcase />
+      {/* <Navbar /> */}
+      {/* <Hero /> */}
+      <HeroSection />
+      <Facilities />
+      <GroundOverview />
+      <Recentbookings />
+      {/* <GroundShowcase /> */}
       <ClientReviews />
-      <FeedbackForm />
+      <Footer />
+      {/* <FeedbackForm /> */}
       <Whatsapp />
     </>
   )
