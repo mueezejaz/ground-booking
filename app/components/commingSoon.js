@@ -64,7 +64,7 @@ const CountdownPage = () => {
           className="w-32 h-32 md:w-40 md:h-40 mb-6 animate-pulse"
         />
 
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#665EFF] uppercase tracking-wide mb-4">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white uppercase tracking-wide mb-4">
           The IDEAL ARENA
         </h1>
         <p className="text-lg sm:text-xl text-white mb-8 max-w-lg">
