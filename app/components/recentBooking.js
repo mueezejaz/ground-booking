@@ -7,7 +7,7 @@ const Icon = ({ pathData, className }) => (
 );
 
 export default async function RecentBookings() {
-  const res = await fetch("http://localhost:3000/api/user/getbookings", {
+  const res = await fetch("https://www.idealarena.com/api/user/getbookings", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
