@@ -34,25 +34,16 @@ function Whatsapp() {
 }
 
 export default function Home() {
-  const launchDate = new Date('2025-09-14T18:00:00+05:00');
-  const now = new Date();
-  const isLaunching = now < launchDate;
 
   return (
     <>
-      {isLaunching ? (
-        <CountdownPage />
-      ) : (
-        <>
-          <HeroSection />
-          <Facilities />
-          <GroundOverview />
-          <Recentbookings />
-          <ClientReviews />
-          <Footer />
-          <Whatsapp />
-        </>
-      )}
+      <HeroSection />
+      <Facilities />
+      <GroundOverview />
+      <Recentbookings />
+      <ClientReviews />
+      <Footer />
+      <Whatsapp />
     </>
-  );
+  )
 }
