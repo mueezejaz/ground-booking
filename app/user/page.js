@@ -18,6 +18,7 @@ export default function BookingPage() {
   const [playerCount, setPlayerCount] = useState("")
   const [contactName, setContactName] = useState("")
   const [contactPhone, setContactPhone] = useState("")
+  const [price, setPrice] = useState(0);
   const [contactEmail, setContactEmail] = useState("")
   const [specialRequests, setSpecialRequests] = useState("")
   const [alertOpen, setAlertOpen] = useState(false);
@@ -39,6 +40,7 @@ export default function BookingPage() {
           const response = await fetch("/api/user/getunverifiedbooking", {
             method: "GET",
             headers: { "Content-Type": "application/json" },
+            cache: "no-store"
           });
           // Optional: handle the response
           const data = await response.json();
@@ -88,6 +90,7 @@ export default function BookingPage() {
     }
   }, [status])
 
+
   if (status === "loading") {
     return <Loading />
   }
@@ -117,6 +120,14 @@ export default function BookingPage() {
         }
         return
       }
+      if (admin && (price == null || price <= 0)) {
+        setAlertContent({ title: "missing field", description: "pleas add price" })
+        setAlertOpen(true)
+        currentAlertFunction.current = () => {
+          setAlertOpen(false);
+        }
+        return
+      }
       setLoading(true);
       const response = await fetch("/api/user/createbooking", {
         method: "POST",
@@ -125,6 +136,7 @@ export default function BookingPage() {
           startDateTime: endTimes.startDateTime,
           endDateTime: endTimes.endDateTime,
           numberOfHours,
+          ...(admin ? { price } : {}),
           playerCount,
           contactName,
           contactPhone,
@@ -248,6 +260,7 @@ export default function BookingPage() {
   } else {
     hourlyRate = 2500;
   }
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
     router.push("/")
@@ -331,7 +344,6 @@ export default function BookingPage() {
                 ))}
               </select>
             </div>
-
             {/* Duration (hours) */}
             <div className="space-y-2">
               <Label htmlFor="hours" className="text-sm font-semibold text-primary">
@@ -366,6 +378,27 @@ export default function BookingPage() {
                 </p>
               </>
             )}
+
+            {/* for admin only */}
+            {admin && (
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-sm font-semibold text-primary">
+                  price
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  placeholder="price"
+                  value={price}
+                  onChange={(e) => {
+                    if (admin) {
+                      setPrice(e.target.value);
+                    }
+                  }}
+                />
+              </div>)
+            }
+            {/* /// */}
 
             {/* Players Count */}
             <div className="space-y-2">

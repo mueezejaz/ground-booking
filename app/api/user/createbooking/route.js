@@ -8,123 +8,125 @@ import { auth } from "@/app/auth";
 import EmailSender from "@/app/utils/EmailSender";
 
 function isValidPakPhone(phone) {
-    return /^03\d{9}$/.test(phone);
+  return /^03\d{9}$/.test(phone);
 }
 
 
 export const POST = handleRouteError(auth(async (req) => {
-    await dbConnect();
-    let isAdmin = false;
-    if (!req.auth.user && !req.auth.user.email) {
-        throw new ApiError(403, "Forbidden");
-    }
-    if (req.auth.user.email === process.env.ADMIN_EMAIL) {
-        isAdmin = true;
-    }
-    const body = await req.json();
-    const requiredFields = [
-        "startDateTime",
-        "endDateTime",
-        "playerCount",
-        "numberOfHours",
-        "contactName",
-        "contactPhone",
-    ];
+  await dbConnect();
+  let isAdmin = false;
+  if (!req.auth.user && !req.auth.user.email) {
+    throw new ApiError(403, "Forbidden");
+  }
+  if (req.auth.user.email === process.env.ADMIN_EMAIL) {
+    isAdmin = true;
+  }
+  const body = await req.json();
+  const requiredFields = [
+    "startDateTime",
+    "endDateTime",
+    "playerCount",
+    "numberOfHours",
+    "contactName",
+    "contactPhone",
+  ];
 
-    for (const field of requiredFields) {
-        if (!body[field]) {
-            throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
-        }
+  for (const field of requiredFields) {
+    if (!body[field]) {
+      throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
     }
+  }
+  if (isAdmin && (body.price == null || body.price <= 0)) {
+    throw new ApiError(400, `pleas add price`);
+  }
+  if (!isValidPakPhone(body.contactPhone)) {
+    throw new ApiError(400, `phone number is not valid`);
+  }
 
-    if (!isValidPakPhone(body.contactPhone)) {
-        throw new ApiError(400, `phone number is not valid`);
-    }
+  const start = new Date(body.startDateTime);
+  const end = new Date(body.endDateTime);
 
-    const start = new Date(body.startDateTime);
-    const end = new Date(body.endDateTime);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw new ApiError(400, "Invalid start or end datetime.");
+  }
 
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        throw new ApiError(400, "Invalid start or end datetime.");
-    }
-
-    const conflict = await Booking.findOne({
-        $and: [
-            {
-                $or: [
-                    { startDateTime: { $lt: end }, endDateTime: { $gt: start } }
-                ]
-            },
-            { status: { $ne: 'cancelled' } }
+  const conflict = await Booking.findOne({
+    $and: [
+      {
+        $or: [
+          { startDateTime: { $lt: end }, endDateTime: { $gt: start } }
         ]
+      },
+      { status: { $ne: 'cancelled' } }
+    ]
+  });
+
+  if (conflict) {
+    console.log("found")
+    if (conflict.isImage || conflict.status === "confirmed") {
+      // Booking is verified – block new booking
+      console.log("found2")
+      return NextResponse.json({
+        success: false,
+        isBooked: true,
+        from: conflict.startDateTime,
+        to: conflict.endDateTime,
+        isImage: conflict.isImage,
+        createdAt: conflict.createdAt,
+        minutesLeft: 0,
+      });
+    }
+
+    const createdAt = new Date(conflict.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - createdAt.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const minutesLeft = Math.max(20 - diffMinutes, 0);
+    console.log(minutesLeft)
+    if (minutesLeft > 0 && conflict.status === "pending") {
+      //show panding time to user 
+      return NextResponse.json({
+        success: false,
+        isBooked: true,
+        from: conflict.startDateTime,
+        to: conflict.endDateTime,
+        isImage: conflict.isImage,
+        createdAt: conflict.createdAt,
+        minutesLeft,
+      });
+    }
+
+    // Hold expired – delete the old booking
+    if (conflict.status === "pending" && !conflict.isImage) {
+      await Booking.findByIdAndDelete(conflict._id);
+    }
+  }
+
+  try {
+    const pkDay = new Date(start.toLocaleString("en-US", { timeZone: "Asia/Karachi" })).getDay();
+    let hourlyRate;
+    if (pkDay >= 1 && pkDay <= 4) {
+      hourlyRate = 2000;
+    } else {
+      hourlyRate = 2500;
+    }
+    const newBooking = new Booking({
+      startDateTime: start,
+      endDateTime: end,
+      numberOfHours: body.numberOfHours,
+      playerCount: body.playerCount,
+      contactName: body.contactName,
+      contactPhone: body.contactPhone,
+      price: isAdmin ? body.price : body.numberOfHours * hourlyRate,
+      status: isAdmin ? "confirmed" : "pending",
+      isImage: isAdmin ? true : false,
+      contactEmail: req.auth.user.email,
+      specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
     });
 
-    if (conflict) {
-        console.log("found")
-        if (conflict.isImage || conflict.status === "confirmed") {
-            // Booking is verified – block new booking
-            console.log("found2")
-            return NextResponse.json({
-                success: false,
-                isBooked: true,
-                from: conflict.startDateTime,
-                to: conflict.endDateTime,
-                isImage: conflict.isImage,
-                createdAt: conflict.createdAt,
-                minutesLeft: 0,
-            });
-        }
+    const savedBooking = await newBooking.save();
 
-        const createdAt = new Date(conflict.createdAt);
-        const now = new Date();
-        const diffMs = now.getTime() - createdAt.getTime();
-        const diffMinutes = Math.floor(diffMs / 60000);
-        const minutesLeft = Math.max(20 - diffMinutes, 0);
-        console.log(minutesLeft)
-        if (minutesLeft > 0 && conflict.status === "pending") {
-            //show panding time to user 
-            return NextResponse.json({
-                success: false,
-                isBooked: true,
-                from: conflict.startDateTime,
-                to: conflict.endDateTime,
-                isImage: conflict.isImage,
-                createdAt: conflict.createdAt,
-                minutesLeft,
-            });
-        }
-
-        // Hold expired – delete the old booking
-        if (conflict.status === "pending" && !conflict.isImage) {
-            await Booking.findByIdAndDelete(conflict._id);
-        }
-    }
-
-    try {
-        const pkDay = new Date(start.toLocaleString("en-US", { timeZone: "Asia/Karachi" })).getDay();
-        let hourlyRate;
-        if (pkDay >= 1 && pkDay <= 4) {
-            hourlyRate = 2000;
-        } else {
-            hourlyRate = 2500;
-        }
-        const newBooking = new Booking({
-            startDateTime: start,
-            endDateTime: end,
-            numberOfHours: body.numberOfHours,
-            playerCount: body.playerCount,
-            contactName: body.contactName,
-            contactPhone: body.contactPhone,
-            price: body.numberOfHours * hourlyRate,
-            status: isAdmin ? "confirmed" : "pending",
-            isImage: isAdmin ? true : false,
-            contactEmail: req.auth.user.email,
-            specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
-        });
-
-        const savedBooking = await newBooking.save();
-
-        const email = `
+    const email = `
                 <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f8f8f8;">
                     <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); padding: 30px;">
                     <h2 style="color: #FF9800;">⏳ Booking Created – Awaiting Payment Screenshot</h2>
@@ -157,21 +159,21 @@ export const POST = handleRouteError(auth(async (req) => {
                 </div>
                 `;
 
-        if (!isAdmin) {
-            await EmailSender(process.env.ADMIN_EMAIL, "New Payment Screenshot Uploaded", email)
-        }
-        return NextResponse.json({
-            message: "Booking successful!",
-            isAdmin,
-            data: savedBooking,
-        }, { status: 201 });
-    } catch (error) {
-        if (error instanceof mongoose.Error.ValidationError) {
-            const messages = Object.values(error.errors).map(err => err.message);
-            throw new ApiError(400, "Validation failed: " + messages.join(", "));
-        }
-        console.error("Error saving booking:", error);
-        throw new ApiError(500, "An unexpected error occurred while processing the booking.");
+    if (!isAdmin) {
+      await EmailSender(process.env.ADMIN_EMAIL, "New Payment Screenshot Uploaded", email)
     }
+    return NextResponse.json({
+      message: "Booking successful!",
+      isAdmin,
+      data: savedBooking,
+    }, { status: 201 });
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const messages = Object.values(error.errors).map(err => err.message);
+      throw new ApiError(400, "Validation failed: " + messages.join(", "));
+    }
+    console.error("Error saving booking:", error);
+    throw new ApiError(500, "An unexpected error occurred while processing the booking.");
+  }
 }));
 
