@@ -320,6 +320,11 @@ const AdminBookingsPage = () => {
               >
                 create new booking +
               </Button>
+              <Button className="w-full md:w-auto"
+                onClick={() => router.push("/admin/dashboard")}
+              >
+                dashboard
+              </Button>
             </div>
           </div>
           {loading ? <Loading /> :

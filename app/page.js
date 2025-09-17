@@ -7,7 +7,7 @@ import ClientReviews from "./components/ClintReviews";
 import Recentbookings from "./components/recentBooking.js";
 import Footer from "./components/Footer.js";
 import Facilities from "./components/facilities.js";
-import CountdownPage from "./components/commingSoon.js";
+// import CountdownPage from "./components/commingSoon.js";
 
 function Whatsapp() {
   return (
