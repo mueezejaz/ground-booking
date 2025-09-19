@@ -314,10 +314,10 @@ export default function BookingPage() {
                 required
                 value={selectedDate}
                 onChange={(e) => {
-                  setSelectedDate(e.target.value)
-                  setSelectedStartTime("")
+                  setSelectedDate(e.target.value);
+                  setSelectedStartTime("");
                 }}
-                min={new Date().toISOString().split("T")[0]}
+                {...(!admin && { min: new Date().toISOString().split("T")[0] })}
               />
             </div>
 
@@ -390,86 +390,85 @@ export default function BookingPage() {
                   type="number"
                   placeholder="price"
                   value={price}
-                  onChange={(e) => {
-                    if (admin) {
-                      setPrice(e.target.value);
-                    }
-                  }}
+                  onChange={(e) => admin && setPrice(e.target.value)}
+                  className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>)
             }
             {/* /// */}
+            {!admin && (
+              <>
+                {/* Players Count */}
+                <div className="space-y-2">
+                  <Label htmlFor="players" className="text-sm font-semibold flex items-center text-primary">
+                    <Users className="w-4 h-4 mr-2 text-secondary" />
+                    Number of Players
+                  </Label>
+                  <Input
+                    id="players"
+                    type="number"
+                    required
+                    placeholder="e.g., 22"
+                    value={playerCount}
+                    onChange={(e) => setPlayerCount(e.target.value)}
+                    min="1"
+                    max="50"
+                  />
+                </div>
 
-            {/* Players Count */}
-            <div className="space-y-2">
-              <Label htmlFor="players" className="text-sm font-semibold flex items-center text-primary">
-                <Users className="w-4 h-4 mr-2 text-secondary" />
-                Number of Players
-              </Label>
-              <Input
-                id="players"
-                type="number"
-                required
-                placeholder="e.g., 22"
-                value={playerCount}
-                onChange={(e) => setPlayerCount(e.target.value)}
-                min="1"
-                max="50"
-              />
-            </div>
+                {/* Contact Info */}
+                <div className="space-y-4">
+                  <Label htmlFor="name" className="text-sm font-semibold text-primary">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    required
+                    placeholder="Your Name"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                  />
 
-            {/* Contact Info */}
-            <div className="space-y-4">
-              <Label htmlFor="name" className="text-sm font-semibold text-primary">
-                Full Name
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                required
-                placeholder="Your Name"
-                value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
-              />
+                  <Label htmlFor="phone" className="text-sm font-semibold text-primary">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    required
+                    placeholder="03365699561"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                  />
 
-              <Label htmlFor="phone" className="text-sm font-semibold text-primary">
-                Phone Number
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                required
-                placeholder="03365699561"
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
-              />
+                  <Label htmlFor="email" className="text-sm font-semibold text-primary">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    defaultValue={contactEmail}
+                    readOnly
+                  />
+                </div>
 
-              <Label htmlFor="email" className="text-sm font-semibold text-primary">
-                Email Address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your.email@example.com"
-                defaultValue={contactEmail}
-                readOnly
-              />
-            </div>
-
-            {/* Special Requests */}
-            <div className="space-y-2">
-              <Label htmlFor="requests" className="text-sm font-semibold text-primary">
-                Special Requests
-              </Label>
-              <Textarea
-                id="requests"
-                placeholder="Any equipment, preferences, etc."
-                value={specialRequests}
-                onChange={(e) => setSpecialRequests(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-
+                {/* Special Requests */}
+                <div className="space-y-2">
+                  <Label htmlFor="requests" className="text-sm font-semibold text-primary">
+                    Special Requests
+                  </Label>
+                  <Textarea
+                    id="requests"
+                    placeholder="Any equipment, preferences, etc."
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </>
+            )}
             {/* Submit Button */}
             <div>
               <Button

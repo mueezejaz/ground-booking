@@ -21,26 +21,32 @@ export const POST = handleRouteError(auth(async (req) => {
   if (req.auth.user.email === process.env.ADMIN_EMAIL) {
     isAdmin = true;
   }
-  const body = await req.json();
-  const requiredFields = [
-    "startDateTime",
-    "endDateTime",
-    "playerCount",
-    "numberOfHours",
-    "contactName",
-    "contactPhone",
-  ];
 
-  for (const field of requiredFields) {
-    if (!body[field]) {
-      throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
+  const body = await req.json();
+
+  if (!isAdmin) {
+    const requiredFields = [
+      "startDateTime",
+      "endDateTime",
+      "playerCount",
+      "numberOfHours",
+      "contactName",
+      "contactPhone",
+    ];
+
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        throw new ApiError(400, `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`);
+      }
+    }
+
+    if (!isValidPakPhone(body.contactPhone)) {
+      throw new ApiError(400, `phone number is not valid`);
     }
   }
+
   if (isAdmin && (body.price == null || body.price <= 0)) {
     throw new ApiError(400, `pleas add price`);
-  }
-  if (!isValidPakPhone(body.contactPhone)) {
-    throw new ApiError(400, `phone number is not valid`);
   }
 
   const start = new Date(body.startDateTime);
@@ -110,19 +116,37 @@ export const POST = handleRouteError(auth(async (req) => {
     } else {
       hourlyRate = 2500;
     }
-    const newBooking = new Booking({
-      startDateTime: start,
-      endDateTime: end,
-      numberOfHours: body.numberOfHours,
-      playerCount: body.playerCount,
-      contactName: body.contactName,
-      contactPhone: body.contactPhone,
-      price: isAdmin ? body.price : body.numberOfHours * hourlyRate,
-      status: isAdmin ? "confirmed" : "pending",
-      isImage: isAdmin ? true : false,
-      contactEmail: req.auth.user.email,
-      specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
-    });
+    let newBookingdata;
+
+    if (isAdmin) {
+      newBookingdata = {
+        startDateTime: start,
+        endDateTime: end,
+        numberOfHours: body.numberOfHours,
+        price: isAdmin ? body.price : body.numberOfHours * hourlyRate,
+        status: isAdmin ? "confirmed" : "pending",
+        isImage: isAdmin ? true : false,
+        contactEmail: req.auth.user.email,
+        specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
+      }
+    } else {
+      newBookingdata = {
+        startDateTime: start,
+        endDateTime: end,
+        numberOfHours: body.numberOfHours,
+        playerCount: body.playerCount,
+        contactName: body.contactName,
+        contactPhone: body.contactPhone,
+        price: body.numberOfHours * hourlyRate,
+        status: "pending",
+        isImage: false,
+        contactEmail: req.auth.user.email,
+        specialRequests: isAdmin ? "made by admin" : body.specialRequests || "",
+      }
+    }
+
+
+    const newBooking = new Booking(newBookingdata);
 
     const savedBooking = await newBooking.save();
 
