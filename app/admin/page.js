@@ -54,7 +54,7 @@ const AdminBookingsPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [bookings, setBookings] = useState([]);
   // const [filteredBookings, setFilteredBookings] = useState([]);
-  const [showUnverified, setShowUnverified] = useState(true);
+  const [showUnverified, setShowUnverified] = useState("show all");
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
@@ -184,6 +184,31 @@ const AdminBookingsPage = () => {
       alert("something wend wrog")
     }
   };
+  async function handleDel(id) {
+    if (confirm("are you sure you want to delete id")) {
+      try {
+        const res = await fetch("/api/admin/deletebookingbyid", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingId: id,
+          })
+        });
+        // setLoading(false);
+        const data = await res.json();
+        console.log(data);
+        if (data.success) {
+          setBookings((prev) => prev.filter((booking) => booking._id !== data.bookingId))
+          alert("booking delete successfully")
+        } else {
+          alert("fail to delete it")
+        }
+      } catch (error) {
+        alert("some thing went wrong");
+        console.log("some thing went wrong", error);
+      }
+    }
+  }
   async function handleSearch(e) {
     setSearchQuery(e.target.value);
   }
@@ -283,6 +308,13 @@ const AdminBookingsPage = () => {
             {booking.status}
           </Badge>
         </div>
+        {booking.status === "cancelled" ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button onClick={() => {
+              handleDel(booking._id);
+            }} className="capitalize bg-red-600 flex-shrink-0">delete booking</Button>
+          </div>
+        ) : ""}
       </CardContent>
     </Card>
   );
@@ -312,9 +344,28 @@ const AdminBookingsPage = () => {
                 value={searchQuery}
                 onChange={handleSearch}
               />
-              <Button className="w-full md:w-auto" onClick={() => setShowUnverified(!showUnverified)}>
-                {showUnverified ? "Show All" : "Show Unverified"}
-              </Button>
+              <select
+                id="bt"
+                value={showUnverified}
+                required
+                onChange={(e) => setShowUnverified(e.target.value)}
+                className="w-full px-3 py-2 border border-primary rounded-md"
+              >
+                <option value={"show all"} key={"show All"}>
+                  show all
+                </option>
+                <option value={"show univerified"} key={"show Univerified"}>
+                  show univerified
+                </option>
+                <option value={"show cancel"} key={"show Cancled"}>
+                  show cancel
+                </option>
+              </select>
+
+
+              {/* <Button className="w-full md:w-auto" onClick={() => setShowUnverified(!showUnverified)}> */}
+              {/*   {showUnverified ? "Show All" : "Show Unverified"} */}
+              {/* </Button> */}
               <Button className="w-full md:w-auto"
                 onClick={() => router.push("/user")}
               >

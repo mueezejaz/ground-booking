@@ -389,8 +389,8 @@ export default function BookingPage() {
                   id="price"
                   type="number"
                   placeholder="price"
-                  value={price}
-                  onChange={(e) => admin && setPrice(e.target.value)}
+                  value={price === 0 ? "" : price}
+                  onChange={(e) => admin && setPrice(Number(e.target.value))}
                   className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>)
