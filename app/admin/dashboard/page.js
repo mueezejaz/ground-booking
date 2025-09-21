@@ -54,7 +54,9 @@ export default function Dashboard() {
   const fetchDashboard = async (month) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/dashboard?month=${month}`);
+      const res = await fetch(`/api/admin/dashboard?month=${month}`, {
+        cache: "no-store"
+      });
       if (!res.ok) {
         const json = await res.json();
         if (json.message === "Forbidden") router.push("/user");
@@ -64,6 +66,7 @@ export default function Dashboard() {
       }
       const json = await res.json();
       if (json.message === "Forbidden") router.push("/user");
+      console.log("this is responce", json)
       setData(json);
     } catch (err) {
       console.error(err);

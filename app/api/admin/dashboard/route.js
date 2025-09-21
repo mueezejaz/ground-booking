@@ -57,6 +57,8 @@ export const GET = handleRouteError(
       // Fetch bookings for the specified month
       const bookings = await Booking.find({
         startDateTime: { $gte: startOfMonth, $lte: endOfMonth },
+        isImage: true,
+        status: "confirmed"
       }).lean();
 
       if (!bookings || bookings.length === 0) {
