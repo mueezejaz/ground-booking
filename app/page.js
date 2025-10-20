@@ -40,7 +40,7 @@ export default function Home() {
       <HeroSection />
       <Facilities />
       <GroundOverview />
-      <Recentbookings />
+      {/* <Recentbookings /> */}
       <ClientReviews />
       <Footer />
       <Whatsapp />
