@@ -4,7 +4,7 @@ import React from 'react';
 import HeroSection from "./components/newHero.js";
 import GroundOverview from "./components/groundOverview.js";
 import ClientReviews from "./components/ClintReviews";
-import Recentbookings from "./components/recentBooking.js";
+// import Recentbookings from "./components/recentBooking.js";
 import Footer from "./components/Footer.js";
 import Facilities from "./components/facilities.js";
 // import CountdownPage from "./components/commingSoon.js";
