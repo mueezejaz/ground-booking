@@ -9,7 +9,7 @@ const HeroSection = () => {
       {/* Background Video */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
-        src="https://res.cloudinary.com/df0nclqqi/video/upload/v1757770106/DJI_0276_1_hrgasb.mp4" // Replace with your video file path
+        src="https://res.cloudinary.com/dxoptpeuq/video/upload/v1763893987/Rheman_compressed_mjadlw.mp4" // Replace with your video file path
         autoPlay
         loop
         muted
