@@ -112,9 +112,9 @@ export const POST = handleRouteError(auth(async (req) => {
     const pkDay = new Date(start.toLocaleString("en-US", { timeZone: "Asia/Karachi" })).getDay();
     let hourlyRate;
     if (pkDay >= 1 && pkDay <= 4) {
-      hourlyRate = 2000;
+      hourlyRate = 3000;
     } else {
-      hourlyRate = 2500;
+      hourlyRate = 3500;
     }
     let newBookingdata;
 

@@ -347,7 +347,7 @@ export default function BookingPage() {
             {/* Duration (hours) */}
             <div className="space-y-2">
               <Label htmlFor="hours" className="text-sm font-semibold text-primary">
-                monday to thoursday Rs2000 and friday to sunday Rs2500
+                monday to thoursday Rs3000 and friday to sunday Rs3500
               </Label>
               <Input
                 id="hours"
